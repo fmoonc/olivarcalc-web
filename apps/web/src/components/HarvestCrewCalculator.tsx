@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import type { HarvestCrewResult } from '@olivar/calculations';
 
 import ResultPanel from './ResultPanel';
+import { useHydrated } from '../lib/hydrated';
 import { firstIssueOf, loadEngine } from '../lib/engine';
 import { provinces, useCrewStore } from '../stores/useCrewStore';
 import type { ParamSetPayload, ResultSummary } from '../lib/types';
@@ -33,6 +34,7 @@ export default function HarvestCrewCalculator({ paramSet }: Props) {
   const [result, setResult] = useState<HarvestCrewResult | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const hydrated = useHydrated();
 
   /**
    * Spec §0.2 seeds both the provincial wage and the employer cost empty until
@@ -150,10 +152,24 @@ export default function HarvestCrewCalculator({ paramSet }: Props) {
       <form
         className="card space-y-4"
         noValidate
+        aria-busy={!hydrated}
         onSubmit={(event) => {
           void submit(event);
         }}
       >
+
+        {!hydrated && (
+          <p role="status" className="rounded border border-earth-200 bg-earth-50 p-3 text-sm">
+            Preparando la calculadora…
+          </p>
+        )}
+
+        {/*
+          A disabled fieldset disables every control inside it natively, which
+          is the one change an island needs. `contents` keeps the wrapper out of
+          the layout, so the server-rendered and hydrated markup stay identical.
+        */}
+        <fieldset className="contents" disabled={!hydrated}>
         <fieldset className="space-y-3">
           <legend className="text-lg font-semibold text-olive-800">La cuadrilla</legend>
 
@@ -305,6 +321,8 @@ export default function HarvestCrewCalculator({ paramSet }: Props) {
             Borrar
           </button>
         </div>
+        </fieldset>
+
       </form>
 
       <div>

@@ -17,5 +17,14 @@ coverage/
 
 .DS_Store
 *.log
-/playwright-report/
-/test-results/
+
+# Playwright (E2E)
+/apps/web/test-results/
+/apps/web/playwright-report/
+/apps/web/blob-report/
+/apps/web/.playwright/
+
+# Playwright (E2E, artefactos locales)
+/apps/web/test-results/
+/apps/web/playwright-report/
+/apps/web/blob-report/

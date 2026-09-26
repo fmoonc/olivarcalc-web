@@ -44,6 +44,97 @@ jobs:
       - name: Build
         run: yarn build
 
+  e2e:
+    # Spec §14 Fase 3: the calculators have to work in a browser, and the golden
+    # fixtures only prove the arithmetic. This is the job that caught the
+    # hydration data loss, which no server-side check could see.
+    #
+    # The API is a separate repository, so it is checked out as a sibling. The
+    # suite refuses to run without it: Astro fetches the parameter set at build
+    # time and fails on purpose (spec §10.1).
+    name: End-to-end
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: olivarcalc
+          MYSQL_USER: olivarcalc
+          MYSQL_PASSWORD: olivarcalc
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uolivarcalc -polivarcalc"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Checkout the API as a sibling
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ vars.API_REPOSITORY }}
+          path: ../olivarcalc-api
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: pdo_mysql, intl, bcmath, gd, zip
+          coverage: none
+
+      - name: Install the API
+        working-directory: ../olivarcalc-api
+        run: |
+          composer install --no-interaction --no-progress
+          cp .env.example .env
+          php artisan key:generate
+          php artisan migrate --force
+          php artisan db:seed --force
+          # The calculators read a published set; without one the pages render
+          # but every figure is wrong.
+          php artisan parameters:publish --force
+
+      - name: Serve the API
+        working-directory: ../olivarcalc-api
+        run: php artisan serve --host=127.0.0.1 --port=8000 &
+        env:
+          DB_HOST: 127.0.0.1
+          DB_DATABASE: olivarcalc
+          DB_USERNAME: olivarcalc
+          DB_PASSWORD: olivarcalc
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+
+      - run: corepack enable
+
+      - run: yarn install --immutable
+
+      - name: Install the browser
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+
+      - name: Run the suite
+        run: yarn e2e
+        env:
+          CI: 'true'
+          API_URL: http://127.0.0.1:8000
+          PUBLIC_SITE_URL: http://127.0.0.1:4321
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report
+          retention-days: 7
+
   openapi-in-sync:
     # Spec §3.3: the committed client must match the contract. Regenerating
     # here and failing on a diff is what catches a forgotten

@@ -6,6 +6,7 @@ import {
 } from '@olivar/calculations';
 
 import ResultPanel from './ResultPanel';
+import { useHydrated } from '../lib/hydrated';
 import { firstIssueOf, loadEngine } from '../lib/engine';
 import { useCostPerHaStore } from '../stores/useCostPerHaStore';
 import type { ParamSetPayload, ResultSummary } from '../lib/types';
@@ -40,6 +41,7 @@ export default function CostPerHectareCalculator({ paramSet }: Props) {
   const [result, setResult] = useState<CostPerHectareResult | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const hydrated = useHydrated();
 
   const paramSetForCalc = useMemo(
     () => ({
@@ -147,10 +149,24 @@ export default function CostPerHectareCalculator({ paramSet }: Props) {
       <form
         className="card space-y-4"
         noValidate
+        aria-busy={!hydrated}
         onSubmit={(event) => {
           void submit(event);
         }}
       >
+
+        {!hydrated && (
+          <p role="status" className="rounded border border-earth-200 bg-earth-50 p-3 text-sm">
+            Preparando la calculadora…
+          </p>
+        )}
+
+        {/*
+          A disabled fieldset disables every control inside it natively, which
+          is the one change an island needs. `contents` keeps the wrapper out of
+          the layout, so the server-rendered and hydrated markup stay identical.
+        */}
+        <fieldset className="contents" disabled={!hydrated}>
         <fieldset className="space-y-3">
           <legend className="text-lg font-semibold text-olive-800">Tu olivar</legend>
 
@@ -302,6 +318,8 @@ export default function CostPerHectareCalculator({ paramSet }: Props) {
             Borrar
           </button>
         </div>
+        </fieldset>
+
       </form>
 
       <div className="space-y-4">

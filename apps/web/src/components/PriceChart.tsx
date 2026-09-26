@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { OilPrice } from '../lib/api';
 import { formatNumber, qualityLabels, type OilPriceQuality } from '../lib/format';
+import { useHydrated } from '../lib/hydrated';
 
 /**
  * The historical price chart (spec §10.2, §10.6).
@@ -19,6 +20,7 @@ export default function PriceChart({ series }: Props) {
   const [quality, setQuality] = useState<OilPriceQuality>('virgin');
   const [Chart, setChart] = useState<React.ComponentType<ChartProps> | null>(null);
   const [loading, setLoading] = useState(false);
+  const hydrated = useHydrated();
 
   const points = useMemo(
     () =>
@@ -52,7 +54,7 @@ export default function PriceChart({ series }: Props) {
   };
 
   return (
-    <section className="card" onMouseEnter={onInteract} onFocus={onInteract}>
+    <section className="card" onMouseEnter={onInteract} onFocus={onInteract} aria-busy={!hydrated}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-lg font-semibold text-olive-800">Histórico de precios</h2>
         <div role="group" aria-label="Calidad del aceite" className="flex gap-2">
@@ -62,6 +64,7 @@ export default function PriceChart({ series }: Props) {
               type="button"
               className={option === quality ? 'btn btn-primary' : 'btn btn-secondary'}
               aria-pressed={option === quality}
+              disabled={!hydrated}
               onClick={() => {
                 setQuality(option);
                 void showChart();
@@ -79,6 +82,9 @@ export default function PriceChart({ series }: Props) {
         <button
           type="button"
           className="mt-4 btn btn-secondary"
+          // Same reason as the calculator forms (ADR-0010): before hydration
+          // there is no click handler, so a press would simply do nothing.
+          disabled={!hydrated}
           onClick={() => void showChart()}
         >
           {loading ? 'Cargando gráfica…' : 'Ver la gráfica'}

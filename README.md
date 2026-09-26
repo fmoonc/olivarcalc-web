@@ -45,12 +45,31 @@ scripts/
 | `yarn lint` | ESLint sobre los tres paquetes con código |
 | `yarn typecheck` | `tsc --noEmit` en todos |
 | `yarn api:generate` | Descarga el contrato y regenera `packages/api-client` |
+| `yarn e2e` | Playwright contra las cinco calculadoras y el resto del sitio |
 
 Un solo test:
 
 ```sh
 yarn workspace @olivar/calculations vitest run -t "decimal comma"
 ```
+
+### Tests end-to-end
+
+`yarn e2e` **necesita la API levantada**, porque Astro consulta el conjunto de
+parámetros en el build y falla a propósito si no la encuentra (spec §10.1):
+
+```sh
+# en el repo hermano
+cd ../olivarcalc-api && php artisan parameters:publish --force && php artisan serve
+
+# aquí
+yarn e2e
+```
+
+Si la API no responde, el arranque falla con el motivo y el comando exacto en
+vez de una lista de timeouts. Playwright levanta el servidor de Astro solo; si
+ya hay uno escuchando en el 4321 lo reutiliza, y entonces su barra de
+herramientas de desarrollo sí queda activa.
 
 ## El paquete de cálculos
 

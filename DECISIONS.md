@@ -186,3 +186,40 @@ through an exception.
 
 Verified end to end: the live API's paramSet, the golden fixtures and the values
 the islands send all agree on 14 figures.
+
+---
+
+## ADR-0010 — Islands disable their form until hydrated, instead of trusting the server-rendered HTML
+
+**Contexto.** Astro server-renders islands, so a tool page's form is on screen
+and looks usable before React takes over. The inputs are controlled by the
+Zustand store, and hydration replaces the store with whatever it rehydrates
+from `localStorage` — empty on a first visit. **Anything the grower typed in
+between was silently discarded**, with no error and no visual sign.
+
+This was invisible to every check in the repo. `renderToString`, HTTP status
+checks and fixture comparisons all run on the server, where the island never
+hydrates. It took a Playwright test to find it.
+
+**Decisión.** `useHydrated()` in `apps/web/src/lib/hydrated.ts`, used by all
+four calculator islands **and the price chart**. Until the island is ready the
+form is wrapped in a `disabled` fieldset and shows "Preparando la calculadora…".
+
+The chart needed it too, same reason in a different costume: its "Ver la
+gráfica" button carries no click handler before hydration, so a press did
+nothing at all. Its buttons are individually `disabled`, since there is no form
+to wrap.
+
+A disabled fieldset is used rather than per-input `disabled` so each calculator
+island needs one change, and `className="contents"` keeps the wrapper out of the
+layout so the server-rendered and hydrated markup stay identical.
+
+**Alternativa descartada.** `client:only` would remove the server render
+entirely, at the cost of a blank form on slow connections and worse LCP — the
+opposite of what spec §10.6 asks for.
+
+**Consecuencias.** A farmer on a mid-range phone and patchy coverage, the
+audience §10.5 names explicitly, sees a disabled form for a moment instead of
+losing a kilo count they typed. The E2E suite now covers it, with the island's
+module deliberately delayed so the pre-hydration state is observable rather
+than a race.
