@@ -159,6 +159,29 @@ test.describe('calculadora de liquidación', () => {
     expect(await headline(page)).not.toBe('—');
   });
 
+  test('the general VAT regime returns a figure instead of failing', async ({ page }) => {
+    // Spec §0.2 left `vat.olive_general_rate_pct` empty, so until it was
+    // confirmed a grower paying under the general regime got an error instead of
+    // a settlement. It now reads 10 % from Ley 37/1992 art. 91.Uno, and this test
+    // is what stops that from silently going back to an empty parameter.
+    await page.goto('/herramientas/liquidacion-aceituna');
+
+    await page.getByLabel('Kilos de aceituna').fill('10000');
+    await page.getByLabel('Rendimiento graso total (%)').fill('18.5');
+    await page.getByLabel('Índice corrector (puntos)').fill('3');
+    await page.getByLabel('Precio del aceite por kilo (aceituna de vuelo)').fill('3.20');
+    await page.getByLabel('Costes de almazara por kilo de aceituna').fill('0.06');
+    await page.getByLabel('Régimen de IVA').selectOption('general');
+
+    await calculate(page, /Calcular liquidación/);
+
+    const shown = await figures(page);
+
+    // 10 % of the 4.360,00 € base, against 12 % under REAGP.
+    expect(shown).toContain('436,00 €');
+    expect(shown).not.toContain('523,20 €');
+  });
+
   test('rejects an empty form with a readable message', async ({ page }) => {
     await page.goto('/herramientas/liquidacion-aceituna');
 
