@@ -1,0 +1,81 @@
+{
+  "calculator": "calculateYieldConverter",
+  "cases": [
+    {
+      "name": "industrial yield and inverse ratios",
+      "input": { "fatYieldTotalPct": "18.5", "correctionIndexPts": "3" },
+      "expected": {
+        "industrialYieldPct": "15.50",
+        "fatYieldDryPct": null,
+        "kgOil": null,
+        "litersOil": null,
+        "kgOlivesPerKgOil": "6.45",
+        "kgOlivesPerLiter": "5.91",
+        "warningCodes": []
+      }
+    },
+    {
+      "name": "fat yield on dry matter",
+      "input": { "fatYieldTotalPct": "18.5", "correctionIndexPts": "3", "moisturePct": "10" },
+      "expected": { "industrialYieldPct": "15.50", "fatYieldDryPct": "20.56" }
+    },
+    {
+      "name": "kg of olives to litres of oil",
+      "input": { "fatYieldTotalPct": "18.5", "correctionIndexPts": "3", "kgOlives": "10000" },
+      "expected": { "kgOil": "1550.00", "litersOil": "1692.1" }
+    },
+    {
+      "name": "inverse mode: olives needed for a target volume",
+      "input": { "fatYieldTotalPct": "18.5", "correctionIndexPts": "3", "targetLiters": "2000" },
+      "expected": { "litersForTarget": "2000.0", "kgOlivesNeeded": "11819.35" }
+    },
+    {
+      "name": "correction index above fat yield yields no oil, not negative oil",
+      "input": { "fatYieldTotalPct": "3", "correctionIndexPts": "5", "kgOlives": "5000" },
+      "expected": {
+        "industrialYieldPct": "0.00",
+        "kgOil": "0.00",
+        "litersOil": "0.0",
+        "kgOlivesPerKgOil": null,
+        "kgOlivesPerLiter": null,
+        "warningCodes": ["low_fat_yield", "zero_industrial_yield"]
+      }
+    },
+    {
+      "name": "decimal comma accepted",
+      "input": { "fatYieldTotalPct": "18,5", "correctionIndexPts": "3", "kgOlives": "10000" },
+      "expected": { "industrialYieldPct": "15.50", "kgOil": "1550.00", "litersOil": "1692.1" }
+    },
+    {
+      "name": "no correction index means the fat yield is the industrial yield",
+      "input": { "fatYieldTotalPct": "18.5" },
+      "expected": { "industrialYieldPct": "18.50", "kgOlivesPerKgOil": "5.41", "kgOlivesPerLiter": "4.95" }
+    },
+    {
+      "name": "low fat yield warns",
+      "input": { "fatYieldTotalPct": "5", "correctionIndexPts": "1" },
+      "expected": { "industrialYieldPct": "4.00", "warningCodes": ["low_fat_yield"] }
+    },
+    {
+      "name": "high fat yield warns",
+      "input": { "fatYieldTotalPct": "35", "correctionIndexPts": "2" },
+      "expected": { "industrialYieldPct": "33.00", "warningCodes": ["high_fat_yield"] }
+    },
+    {
+      "name": "large correction index",
+      "input": { "fatYieldTotalPct": "18.5", "correctionIndexPts": "7" },
+      "expected": { "industrialYieldPct": "11.50", "kgOlivesPerKgOil": "8.70", "kgOlivesPerLiter": "7.97" }
+    },
+    {
+      "name": "zero moisture leaves the dry-matter figure equal to the raw one",
+      "input": { "fatYieldTotalPct": "18.5", "correctionIndexPts": "3", "moisturePct": "0" },
+      "expected": { "fatYieldDryPct": "18.50" }
+    },
+    {
+      "name": "unverified density warns but still calculates",
+      "input": { "fatYieldTotalPct": "18.5", "correctionIndexPts": "3", "kgOlives": "10000" },
+      "params": { "oil.density_kg_per_l": { "value": "0.916", "verified": false } },
+      "expected": { "litersOil": "1692.1", "warningCodes": ["unverified_params"] }
+    }
+  ]
+}

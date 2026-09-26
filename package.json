@@ -1,0 +1,32 @@
+{
+  "name": "olivarcalc-web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "yarn@4.18.1",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "api:generate": "node scripts/api-generate.mjs",
+    "e2e": "turbo run e2e",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@olivar/config": "*",
+    "@types/node": "^24.0.0",
+    "prettier": "^3.9.9",
+    "turbo": "2.11.4",
+    "typescript": "^5.9.3"
+  }
+}

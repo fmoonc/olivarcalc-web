@@ -1,0 +1,66 @@
+---
+// Placeholder home page. The real route set is spec §10.2 and belongs to
+// Fase 3; this exists so `yarn dev` and `yarn build` are meaningful now.
+import { calculateYieldConverter, SETTLEMENT_CALC_VERSION } from '@olivar/calculations';
+
+const demo = calculateYieldConverter(
+  { fatYieldTotalPct: '18.5', correctionIndexPts: '3', kgOlives: '10000' },
+  {
+    version: 'demo',
+    campaign: '2026-27',
+    publishedAt: '2026-09-26',
+    params: {
+      'oil.density_kg_per_l': {
+        key: 'oil.density_kg_per_l',
+        value: '0.916',
+        unit: 'kg/L',
+        verified: false,
+        sourceLabel: '',
+        sourceUrl: '',
+      },
+    },
+  },
+);
+---
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OlivarCalc</title>
+    <meta
+      name="description"
+      content="Herramientas y precios para agricultores de olivar en España."
+    />
+  </head>
+  <body>
+    <main>
+      <h1>OlivarCalc</h1>
+      <p>Fase 0 y Fase 1 en marcha. Esta página es un marcador de posición.</p>
+
+      <section>
+        <h2>El paquete de cálculos ya funciona</h2>
+        <p>
+          Versión de la fórmula de liquidación:
+          <strong>{SETTLEMENT_CALC_VERSION}</strong>
+        </p>
+        <p>
+          Conversión de rendimiento en el servidor, como prueba de que
+          <code>@olivar/calculations</code> se importa sin dependencias de navegador:
+        </p>
+        <ul>
+          <li>Rendimiento industrial: {demo.industrialYieldPct} %</li>
+          <li>Aceite obtenido: {demo.kgOil} kg</li>
+          <li>En litros: {demo.litersOil} L</li>
+        </ul>
+        {
+          demo.warnings.length > 0 && (
+            <p role="status">
+              <strong>Aviso:</strong> {demo.warnings.map((w) => w.message).join(' ')}
+            </p>
+          )
+        }
+      </section>
+    </main>
+  </body>
+</html>

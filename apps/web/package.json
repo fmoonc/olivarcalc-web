@@ -1,0 +1,44 @@
+{
+  "name": "@olivar/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "//": [
+    "typecheck is plain `tsc --noEmit` on purpose: `astro check` wants to",
+    "install @astrojs/check interactively and refuses to run non-interactively,",
+    "which would hang CI. Revisit in Fase 3, when there are React islands and",
+    ".astro files whose frontmatter actually needs checking."
+  ],
+  "scripts": {
+    "dev": "astro dev --host 127.0.0.1 --port 4321",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .astro,.ts,.tsx",
+    "test": "echo \"no unit tests in apps/web yet (spec Fase 3)\" && exit 0",
+    "e2e": "echo \"Playwright not set up yet (spec Fase 3)\" && exit 0"
+  },
+  "dependencies": {
+    "@astrojs/react": "^5.0.0",
+    "@astrojs/sitemap": "^3.6.0",
+    "@olivar/api-client": "*",
+    "@olivar/calculations": "*",
+    "@tanstack/react-query": "^5.0.0",
+    "astro": "^7.3.5",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.5",
+    "@olivar/config": "*",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "eslint": "^10.11.0",
+    "eslint-plugin-astro": "^3.2.1",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.3"
+  }
+}

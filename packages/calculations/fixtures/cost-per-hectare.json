@@ -1,0 +1,106 @@
+{
+  "calculator": "calculateCostPerHectare",
+  "baseCostLines": {
+    "pruning": "180", "fertilization": "220", "phytosanitary": "90",
+    "irrigation": "150", "harvest": "320", "soilManagement": "60",
+    "machinery": "210", "insurance": "45", "coopFees": "35",
+    "other": "20", "depreciation": "70"
+  },
+  "baseInput": {
+    "system": "intensive", "irrigation": "irrigated", "hectares": "10",
+    "yieldKgOlivesPerHa": "4000", "industrialYieldPct": "15",
+    "pricingMode": "oil_price", "oilPriceEurKg": "3.20"
+  },
+  "cases": [
+    {
+      "name": "intensive irrigated grove sold by oil price",
+      "input": {},
+      "expected": {
+        "totalCostPerHa": "1400.00", "totalCost": "14000.00", "kgOilPerHa": "600.00",
+        "revenuePerHa": "1920.00", "marginPerHa": "520.00", "costPerKgOlive": "0.35",
+        "costPerKgOil": "2.33", "breakEvenOilPrice": "2.33"
+      }
+    },
+    {
+      "name": "subsidies lift the margin and lower the break-even price",
+      "input": { "subsidiesEurPerHa": "150" },
+      "expected": { "marginPerHa": "670.00", "breakEvenOilPrice": "2.08" }
+    },
+    {
+      "name": "sold by olive price instead of oil price",
+      "input": { "pricingMode": "olive_price", "olivePriceEurKg": "0.20" },
+      "expected": { "revenuePerHa": "800.00", "marginPerHa": "-600.00" }
+    },
+    {
+      "name": "subsidies larger than the cost would flip the break-even negative",
+      "input": { "subsidiesEurPerHa": "1500" },
+      "expected": { "marginPerHa": "2020.00", "breakEvenOilPrice": "-0.17" }
+    },
+    {
+      "name": "zero industrial yield leaves the per-kg-oil figures at zero",
+      "input": { "industrialYieldPct": "0" },
+      "expected": { "kgOilPerHa": "0.00", "revenuePerHa": "0.00", "costPerKgOil": "0.00", "breakEvenOilPrice": "0.00", "marginPerHa": "-1400.00" }
+    },
+    {
+      "name": "a single hectare divides evenly",
+      "input": { "hectares": "1" },
+      "expected": { "totalCost": "1400.00", "marginPerHa": "520.00" }
+    },
+    {
+      "name": "decimal comma on the area and the yield",
+      "input": { "hectares": "2,5", "yieldKgOlivesPerHa": "3800" },
+      "expected": { "totalCost": "3500.00", "kgOilPerHa": "570.00", "revenuePerHa": "1824.00", "marginPerHa": "424.00" }
+    },
+    {
+      "name": "a traditional dry grove with a lower cost base",
+      "input": {
+        "system": "traditional", "irrigation": "dry",
+        "costLines": {
+          "pruning": "120", "fertilization": "150", "phytosanitary": "60",
+          "irrigation": "0", "harvest": "280", "soilManagement": "40",
+          "machinery": "160", "insurance": "35", "coopFees": "25",
+          "other": "10", "depreciation": "40"
+        }
+      },
+      "expected": { "totalCostPerHa": "920.00", "totalCost": "9200.00", "marginPerHa": "1000.00", "breakEvenOilPrice": "1.53" }
+    },
+    {
+      "name": "a superintensive grove at a higher oil price",
+      "input": {
+        "system": "superintensive",
+        "yieldKgOlivesPerHa": "9000", "industrialYieldPct": "18", "oilPriceEurKg": "4.10"
+      },
+      "expected": { "kgOilPerHa": "1620.00", "revenuePerHa": "6642.00", "marginPerHa": "5242.00", "costPerKgOil": "0.86" }
+    },
+    {
+      "name": "a high oil price turns a loss into a profit",
+      "input": { "oilPriceEurKg": "3.80" },
+      "expected": { "revenuePerHa": "2280.00", "marginPerHa": "880.00", "breakEvenOilPrice": "2.33" }
+    },
+    {
+      "name": "an unverified preset for this system and irrigation warns",
+      "input": {},
+      "params": {
+        "presets.cost_per_ha.intensive.irrigated": {
+          "value": "{\"pruning\":\"180\"}", "verified": false
+        }
+      },
+      "expected": { "totalCostPerHa": "1400.00", "warningCodes": ["unverified_params"] }
+    },
+    {
+      "name": "an unverified preset for a different system does not warn",
+      "input": {},
+      "params": {
+        "presets.cost_per_ha.superintensive.irrigated": {
+          "value": "{\"pruning\":\"300\"}", "verified": false
+        }
+      },
+      "expected": { "totalCostPerHa": "1400.00", "warningCodes": [] }
+    },
+    {
+      "name": "trees per hectare is informational and does not move the numbers",
+      "input": { "treesPerHa": "350" },
+      "expected": { "totalCostPerHa": "1400.00", "marginPerHa": "520.00" }
+    }
+  ]
+}

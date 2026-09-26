@@ -1,0 +1,337 @@
+{
+  "_comment": "Golden fixtures for the settlement calculator (spec §4.3). Expected values are hand-derived from the spec's arithmetic, not snapshotted from the implementation. Keys checked: the numbers that matter to a farmer.",
+  "cases": [
+    {
+      "name": "single delivery, oil price, REAGP, IRPF withheld",
+      "input": {
+        "deliveries": [
+          { "kgOlives": "10000", "fatYieldTotalPct": "18.5", "harvestType": "tree" }
+        ],
+        "correctionIndexPts": "3",
+        "pricingMode": "oil_price",
+        "oilPriceEurKg": "3.20",
+        "coopCostsEurPerKgOlive": "0.06",
+        "vatRegime": "reagp",
+        "applyIrpfWithholding": true
+      },
+      "expected": {
+        "totalKgOlives": "10000.00",
+        "totalKgOil": "1550.00",
+        "litersOil": "1692.1",
+        "avgIndustrialYieldPct": "15.50",
+        "taxableBase": "4360.00",
+        "vatAmount": "523.20",
+        "withholding": "87.20",
+        "withdrawnAmount": "0.00",
+        "netToReceive": "4796.00",
+        "effectivePricePerKgOlive": "0.48",
+        "warningCodes": []
+      }
+    },
+    {
+      "name": "two deliveries, tree and ground priced differently",
+      "input": {
+        "deliveries": [
+          { "kgOlives": "10000", "fatYieldTotalPct": "18.5", "harvestType": "tree" },
+          { "kgOlives": "6000", "fatYieldTotalPct": "17.2", "harvestType": "ground" }
+        ],
+        "correctionIndexPts": "3",
+        "pricingMode": "oil_price",
+        "oilPriceEurKg": "3.20",
+        "oilPriceGroundEurKg": "2.90",
+        "coopCostsEurPerKgOlive": "0.06",
+        "vatRegime": "reagp",
+        "applyIrpfWithholding": true
+      },
+      "expected": {
+        "totalKgOlives": "16000.00",
+        "totalKgOil": "2402.00",
+        "litersOil": "2622.3",
+        "avgIndustrialYieldPct": "15.01",
+        "taxableBase": "6470.80",
+        "vatAmount": "776.50",
+        "withholding": "129.42",
+        "netToReceive": "7117.88",
+        "effectivePricePerKgOlive": "0.44",
+        "perDelivery": [
+          { "index": 0, "kgOlives": "10000.00", "industrialYieldPct": "15.50", "kgOil": "1550.00", "gross": "4960.00", "costs": "600.00" },
+          { "index": 1, "kgOlives": "6000.00", "industrialYieldPct": "14.20", "kgOil": "852.00", "gross": "2470.80", "costs": "360.00" }
+        ]
+      }
+    },
+    {
+      "name": "general VAT regime instead of REAGP",
+      "input": {
+        "deliveries": [
+          { "kgOlives": "10000", "fatYieldTotalPct": "18.5", "harvestType": "tree" }
+        ],
+        "correctionIndexPts": "3",
+        "pricingMode": "oil_price",
+        "oilPriceEurKg": "3.20",
+        "coopCostsEurPerKgOlive": "0.06",
+        "vatRegime": "general",
+        "applyIrpfWithholding": true
+      },
+      "expected": {
+        "taxableBase": "4360.00",
+        "vatAmount": "436.00",
+        "withholding": "87.20",
+        "netToReceive": "4708.80"
+      }
+    },
+    {
+      "name": "no VAT regime and no IRPF withholding",
+      "input": {
+        "deliveries": [
+          { "kgOlives": "10000", "fatYieldTotalPct": "18.5", "harvestType": "tree" }
+        ],
+        "correctionIndexPts": "3",
+        "pricingMode": "oil_price",
+        "oilPriceEurKg": "3.20",
+        "coopCostsEurPerKgOlive": "0.06",
+        "vatRegime": "none",
+        "applyIrpfWithholding": false
+      },
+      "expected": {
+        "taxableBase": "4360.00",
+        "vatAmount": "0.00",
+        "withholding": "0.00",
+        "netToReceive": "4360.00",
+        "effectivePricePerKgOlive": "0.44"
+      }
+    },
+    {
+      "name": "withholding base includes VAT",
+      "input": {
+        "deliveries": [
+          { "kgOlives": "10000", "fatYieldTotalPct": "18.5", "harvestType": "tree" }
+        ],
+        "correctionIndexPts": "3",
+        "pricingMode": "oil_price",
+        "oilPriceEurKg": "3.20",
+        "coopCostsEurPerKgOlive": "0.06",
+        "vatRegime": "reagp",
+        "applyIrpfWithholding": true
+      },
+      "params": { "irpf.withholding_base_includes_vat": "true" },
+      "expected": {
+        "taxableBase": "4360.00",
+        "vatAmount": "523.20",
+        "withholding": "97.66",
+        "netToReceive": "4785.54"
+      }
+    },
+    {
+      "name": "industrial yield typed directly, skipping the correction index",
+      "input": {
+        "deliveries": [
+          { "kgOlives": "10000", "fatYieldTotalPct": "18.5", "harvestType": "tree" }
+        ],
+        "industrialYieldPct": "16",
+        "pricingMode": "oil_price",
+        "oilPriceEurKg": "3.20",
+        "coopCostsEurPerKgOlive": "0.06",
+        "vatRegime": "reagp",
+        "applyIrpfWithholding": true
+      },
+      "expected": {
+        "totalKgOil": "1600.00",
+        "litersOil": "1746.7",
+        "avgIndustrialYieldPct": "16.00",
+        "taxableBase": "4520.00",
+        "vatAmount": "542.40",
+        "withholding": "90.40",
+        "netToReceive": "4972.00",
+        "effectivePricePerKgOlive": "0.50"
+      }
+    },
+    {
+      "name": "priced per kg of olives instead of per kg of oil",
+      "input": {
+        "deliveries": [
+          { "kgOlives": "10000", "fatYieldTotalPct": "18.5", "harvestType": "tree" }
+        ],
+        "correctionIndexPts": "3",
+        "pricingMode": "olive_price",
+        "olivePriceEurKg": "0.18",
+        "coopCostsEurPerKgOlive": "0.06",
+        "vatRegime": "reagp",
+        "applyIrpfWithholding": true
+      },
+      "expected": {
+        "taxableBase": "1200.00",
+        "vatAmount": "144.00",
+        "withholding": "24.00",
+        "netToReceive": "1320.00",
+        "effectivePricePerKgOlive": "0.13"
+      }
+    },
+    {
+      "name": "oil withdrawn in kg exceeds the settlement",
+      "input": {
+        "deliveries": [
+          { "kgOlives": "1000", "fatYieldTotalPct": "10", "harvestType": "tree" }
+        ],
+        "correctionIndexPts": "2",
+        "pricingMode": "oil_price",
+        "oilPriceEurKg": "3.00",
+        "coopCostsEurPerKgOlive": "0.10",
+        "vatRegime": "none",
+        "applyIrpfWithholding": false,
+        "oilWithdrawn": { "kg": "100", "priceEurKg": "3.00" }
+      },
+      "expected": {
+        "taxableBase": "140.00",
+        "withdrawnAmount": "300.00",
+        "netToReceive": "-160.00",
+        "effectivePricePerKgOlive": "-0.16",
+        "warningCodes": ["negative_settlement"]
+      }
+    },
+    {
+      "name": "oil withdrawn in litres converts through density",
+      "input": {
+        "deliveries": [
+          { "kgOlives": "1000", "fatYieldTotalPct": "10", "harvestType": "tree" }
+        ],
+        "correctionIndexPts": "2",
+        "pricingMode": "oil_price",
+        "oilPriceEurKg": "3.00",
+        "coopCostsEurPerKgOlive": "0.10",
+        "vatRegime": "none",
+        "applyIrpfWithholding": false,
+        "oilWithdrawn": { "liters": "50", "priceEurKg": "3.00" }
+      },
+      "expected": {
+        "withdrawnAmount": "137.40",
+        "netToReceive": "2.60",
+        "effectivePricePerKgOlive": "0.00"
+      }
+    },
+    {
+      "name": "correction index above fat yield gives zero oil, not negative",
+      "input": {
+        "deliveries": [
+          { "kgOlives": "5000", "fatYieldTotalPct": "3", "harvestType": "ground" }
+        ],
+        "correctionIndexPts": "5",
+        "pricingMode": "olive_price",
+        "olivePriceEurKg": "0.15",
+        "coopCostsEurPerKgOlive": "0.06",
+        "vatRegime": "none",
+        "applyIrpfWithholding": false
+      },
+      "expected": {
+        "totalKgOil": "0.00",
+        "litersOil": "0.0",
+        "avgIndustrialYieldPct": "0.00",
+        "taxableBase": "450.00",
+        "netToReceive": "450.00",
+        "effectivePricePerKgOlive": "0.09",
+        "warningCodes": ["low_fat_yield"]
+      }
+    },
+    {
+      "name": "decimal comma accepted on every input",
+      "input": {
+        "deliveries": [
+          { "kgOlives": "1234,56", "fatYieldTotalPct": "18,5", "harvestType": "tree" }
+        ],
+        "correctionIndexPts": "3",
+        "pricingMode": "oil_price",
+        "oilPriceEurKg": "3,20",
+        "coopCostsEurPerKgOlive": "0,06",
+        "vatRegime": "reagp",
+        "applyIrpfWithholding": true
+      },
+      "expected": {
+        "totalKgOlives": "1234.56",
+        "totalKgOil": "191.36",
+        "litersOil": "208.9",
+        "avgIndustrialYieldPct": "15.50",
+        "taxableBase": "538.27",
+        "vatAmount": "64.59",
+        "withholding": "10.77",
+        "netToReceive": "592.09",
+        "effectivePricePerKgOlive": "0.48"
+      }
+    },
+    {
+      "name": "fat yield above 30% warns",
+      "input": {
+        "deliveries": [
+          { "kgOlives": "10000", "fatYieldTotalPct": "32", "harvestType": "tree" }
+        ],
+        "correctionIndexPts": "2",
+        "pricingMode": "oil_price",
+        "oilPriceEurKg": "3.20",
+        "coopCostsEurPerKgOlive": "0.06",
+        "vatRegime": "reagp",
+        "applyIrpfWithholding": true
+      },
+      "expected": {
+        "avgIndustrialYieldPct": "30.00",
+        "totalKgOil": "3000.00",
+        "warningCodes": ["high_fat_yield"]
+      }
+    },
+    {
+      "name": "correction index above 6 points warns",
+      "input": {
+        "deliveries": [
+          { "kgOlives": "10000", "fatYieldTotalPct": "20", "harvestType": "tree" }
+        ],
+        "correctionIndexPts": "7",
+        "pricingMode": "oil_price",
+        "oilPriceEurKg": "3.20",
+        "coopCostsEurPerKgOlive": "0.06",
+        "vatRegime": "reagp",
+        "applyIrpfWithholding": true
+      },
+      "expected": {
+        "avgIndustrialYieldPct": "13.00",
+        "totalKgOil": "1300.00",
+        "warningCodes": ["high_correction_index"]
+      }
+    },
+    {
+      "name": "a ground delivery with no separate ground price falls back to the main price",
+      "input": {
+        "deliveries": [
+          { "kgOlives": "5000", "fatYieldTotalPct": "18", "harvestType": "ground" }
+        ],
+        "correctionIndexPts": "2",
+        "pricingMode": "oil_price",
+        "oilPriceEurKg": "3.00",
+        "coopCostsEurPerKgOlive": "0.06",
+        "vatRegime": "none",
+        "applyIrpfWithholding": false
+      },
+      "expected": {
+        "totalKgOil": "800.00",
+        "perDelivery": [
+          { "index": 0, "kgOlives": "5000.00", "industrialYieldPct": "16.00", "kgOil": "800.00", "gross": "2400.00", "costs": "300.00" }
+        ]
+      }
+    },
+    {
+      "name": "unverified parameters raise a warning, not an error",
+      "input": {
+        "deliveries": [
+          { "kgOlives": "10000", "fatYieldTotalPct": "18.5", "harvestType": "tree" }
+        ],
+        "correctionIndexPts": "3",
+        "pricingMode": "oil_price",
+        "oilPriceEurKg": "3.20",
+        "coopCostsEurPerKgOlive": "0.06",
+        "vatRegime": "reagp",
+        "applyIrpfWithholding": true
+      },
+      "params": { "oil.density_kg_per_l": { "value": "0.916", "verified": false } },
+      "expected": {
+        "netToReceive": "4796.00",
+        "warningCodes": ["unverified_params"]
+      }
+    }
+  ]
+}

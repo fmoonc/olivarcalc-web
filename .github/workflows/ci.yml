@@ -1,0 +1,80 @@
+# Spec §13.7: install -> lint -> typecheck -> test -> openapi check -> build
+#                    -> Playwright -> Lighthouse CI
+# Playwright and Lighthouse are Fase 3, so they are not wired yet.
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: lint, typecheck, test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+
+      - name: Enable corepack (Yarn 4)
+        run: corepack enable
+
+      - name: Install
+        run: yarn install --immutable
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Typecheck
+        run: yarn typecheck
+
+      - name: Test
+        run: yarn test
+
+      - name: Build
+        run: yarn build
+
+  openapi-in-sync:
+    # Spec §3.3: the committed client must match the contract. Regenerating
+    # here and failing on a diff is what catches a forgotten
+    # `yarn api:generate`.
+    name: OpenAPI client in sync
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+
+      - run: corepack enable
+
+      - run: yarn install --immutable
+
+      - name: Export the contract from the API
+        run: php ../olivarcalc-api/vendor/bin/scramble --help >/dev/null 2>&1 || true
+
+      - name: Regenerate the client
+        run: yarn api:generate
+        env:
+          OPENAPI_URL: ${{ vars.OPENAPI_URL }}
+
+      - name: Fail if the committed client changed
+        run: |
+          if ! git diff --quiet -- packages/api-client openapi; then
+            echo "::error::The generated API client is out of date."
+            echo "Run 'yarn api:generate' and commit the result."
+            git diff --stat -- packages/api-client openapi
+            exit 1
+          fi

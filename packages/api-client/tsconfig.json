@@ -1,0 +1,14 @@
+{
+  "extends": "@olivar/config/tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    // orval emits extensionless relative imports; `bundler` accepts those.
+    // The generated client is app code consumed by Vite/Astro, so bundler
+    // resolution is the right model here (NodeNext is not).
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "types": []
+  },
+  "include": ["src/**/*.ts", "orval.config.ts"]
+}

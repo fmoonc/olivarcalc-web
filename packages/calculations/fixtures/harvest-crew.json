@@ -1,0 +1,112 @@
+{
+  "calculator": "calculateHarvestCrew",
+  "cases": [
+    {
+      "name": "param-driven employer cost, full equipment",
+      "input": {
+        "workers": "6", "days": "12", "province": "jaen", "category": "peon",
+        "kgPerWorkerPerDay": "400", "machineryCostPerDayEur": "120",
+        "transportCostPerDayEur": "45", "employerCostMode": "param"
+      },
+      "expected": {
+        "dailyWage": "60.00", "wagesTotal": "4320.00", "employerCost": "1296.00",
+        "opsTotal": "1980.00", "total": "7596.00", "kgHarvested": "28800.00",
+        "costPerKgOlive": "0.26", "warningCodes": ["crew_estimate"]
+      }
+    },
+    {
+      "name": "manual daily wage overrides the convenio parameter",
+      "input": {
+        "workers": "6", "days": "12", "province": "jaen", "category": "peon",
+        "dailyWageOverrideEur": "75", "kgPerWorkerPerDay": "400",
+        "machineryCostPerDayEur": "120", "transportCostPerDayEur": "45",
+        "employerCostMode": "param"
+      },
+      "expected": {
+        "dailyWage": "75.00", "wagesTotal": "5400.00", "employerCost": "1620.00",
+        "opsTotal": "1980.00", "total": "9000.00", "costPerKgOlive": "0.31"
+      }
+    },
+    {
+      "name": "manual employer percentage instead of the parameter",
+      "input": {
+        "workers": "6", "days": "12", "province": "jaen", "category": "peon",
+        "kgPerWorkerPerDay": "400", "machineryCostPerDayEur": "120",
+        "transportCostPerDayEur": "45", "employerCostMode": "manual",
+        "employerCostPctManual": "25"
+      },
+      "expected": { "employerCost": "1080.00", "total": "7380.00", "costPerKgOlive": "0.26" }
+    },
+    {
+      "name": "a different province uses a different wage",
+      "input": {
+        "workers": "6", "days": "12", "province": "cordoba", "category": "peon",
+        "kgPerWorkerPerDay": "400", "machineryCostPerDayEur": "120",
+        "transportCostPerDayEur": "45", "employerCostMode": "param"
+      },
+      "params": { "wages.cordoba.peon.daily_eur": "55" },
+      "expected": { "dailyWage": "55.00", "wagesTotal": "3960.00", "employerCost": "1188.00", "total": "7128.00", "costPerKgOlive": "0.25" }
+    },
+    {
+      "name": "no equipment at all, and the 0.195 case rounds half up to 0.20",
+      "input": {
+        "workers": "6", "days": "12", "province": "jaen", "category": "peon",
+        "kgPerWorkerPerDay": "400", "employerCostMode": "param"
+      },
+      "expected": { "opsTotal": "0.00", "total": "5616.00", "costPerKgOlive": "0.20" }
+    },
+    {
+      "name": "decimal comma on every input",
+      "input": {
+        "workers": "6", "days": "12", "province": "jaen", "category": "peon",
+        "kgPerWorkerPerDay": "400", "machineryCostPerDayEur": "120,50",
+        "transportCostPerDayEur": "45", "employerCostMode": "param"
+      },
+      "expected": { "opsTotal": "1986.00", "total": "7602.00", "costPerKgOlive": "0.26" }
+    },
+    {
+      "name": "a single worker for one day",
+      "input": {
+        "workers": "1", "days": "1", "province": "jaen", "category": "peon",
+        "kgPerWorkerPerDay": "500", "employerCostMode": "param"
+      },
+      "expected": { "wagesTotal": "60.00", "employerCost": "18.00", "total": "78.00", "kgHarvested": "500.00", "costPerKgOlive": "0.16" }
+    },
+    {
+      "name": "an unverified wage warns and the result still comes back",
+      "input": {
+        "workers": "6", "days": "12", "province": "jaen", "category": "peon",
+        "kgPerWorkerPerDay": "400", "employerCostMode": "param"
+      },
+      "params": { "wages.jaen.peon.daily_eur": { "value": "60", "verified": false } },
+      "expected": { "total": "5616.00", "warningCodes": ["crew_estimate", "unverified_params"] }
+    },
+    {
+      "name": "an unverified employer percentage warns",
+      "input": {
+        "workers": "6", "days": "12", "province": "jaen", "category": "peon",
+        "kgPerWorkerPerDay": "400", "employerCostMode": "param"
+      },
+      "params": { "labor.employer_cost_pct": { "value": "30", "verified": false } },
+      "expected": { "total": "5616.00", "warningCodes": ["crew_estimate", "unverified_params"] }
+    },
+    {
+      "name": "a wage override means the unverified wage parameter is never read",
+      "input": {
+        "workers": "6", "days": "12", "province": "jaen", "category": "peon",
+        "dailyWageOverrideEur": "70", "kgPerWorkerPerDay": "400",
+        "employerCostMode": "param"
+      },
+      "params": { "wages.jaen.peon.daily_eur": { "value": "60", "verified": false } },
+      "expected": { "wagesTotal": "5040.00", "warningCodes": ["crew_estimate"] }
+    },
+    {
+      "name": "manual employer cost with no percentage supplied falls back to zero",
+      "input": {
+        "workers": "4", "days": "10", "province": "jaen", "category": "peon",
+        "kgPerWorkerPerDay": "450", "employerCostMode": "manual"
+      },
+      "expected": { "wagesTotal": "2400.00", "employerCost": "0.00", "total": "2400.00", "kgHarvested": "18000.00", "costPerKgOlive": "0.13" }
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+node_modules/
+dist/
+.astro/
+coverage/
+.turbo/
+.output/
+
+# Yarn 4 (nodeLinker: node-modules)
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+.pnp.*
+
+.env
+.env.local
+.env.*.local
+
+.DS_Store
+*.log
+/playwright-report/
+/test-results/
