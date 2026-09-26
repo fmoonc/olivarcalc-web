@@ -1,0 +1,72 @@
+---
+/**
+ * Coste de la cuadrilla de recogida (spec §10.2, §10.3).
+ */
+import Base from '../../layouts/Base.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import HarvestCrewCalculator from '../../components/HarvestCrewCalculator';
+import { getCurrentParameters, getToolPage } from '../../lib/api';
+import { PUBLIC_SITE_URL } from '../../lib/seo';
+
+const [paramSet, toolPage] = await Promise.all([
+  getCurrentParameters(),
+  getToolPage('harvest_crew'),
+]);
+
+const title = toolPage.meta_title ?? toolPage.title;
+const description =
+  toolPage.meta_description ??
+  'Calcula lo que cuesta recoger tu aceituna con una cuadrilla: jornales, sobrecoste empresarial y maquinaria.';
+---
+
+<Base
+  title={title}
+  description={description}
+  canonicalPath="/herramientas/coste-cuadrilla-recogida"
+  breadcrumbs={[{ name: 'Herramientas' }, { name: 'Coste de la cuadrilla' }]}
+  schema={[
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebApplication',
+      name: 'Coste de la cuadrilla de recogida',
+      applicationCategory: 'FinanceApplication',
+      operatingSystem: 'web',
+      url: new URL('/herramientas/coste-cuadrilla-recogida', PUBLIC_SITE_URL).toString(),
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+      isAccessibleForFree: true,
+    },
+  ]}
+>
+  <h1 class="text-3xl font-bold text-olive-800">{toolPage.title}</h1>
+  {toolPage.intro_markdown && <p class="mt-2 max-w-2xl text-lg">{toolPage.intro_markdown}</p>}
+
+  <div class="mt-6">
+    <HarvestCrewCalculator paramSet={paramSet} client:load />
+  </div>
+
+  <AdSlot slot="after-result" format="horizontal" />
+
+  {
+    toolPage.body_markdown && (
+      <section class="prose mt-8 max-w-2xl">
+        <Fragment set:html={toolPage.body_markdown} />
+      </section>
+    )
+  }
+
+  {
+    toolPage.faq.length > 0 && (
+      <section class="mt-8 max-w-2xl">
+        <h2 class="text-2xl font-semibold text-olive-800">Preguntas frecuentes</h2>
+        <dl class="mt-3 space-y-4">
+          {toolPage.faq.map((item) => (
+            <div>
+              <dt class="font-semibold">{item.question}</dt>
+              <dd class="text-earth-600">{item.answer}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+    )
+  }
+</Base>

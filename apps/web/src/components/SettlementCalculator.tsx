@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 // Type-only, so it costs nothing at runtime. The engine, zod included, is
-// loaded on demand: see `loadEngine`.
-import type * as Calculations from '@olivar/calculations';
+// loaded on demand through `lib/engine.ts`.
 import type { SettlementResult } from '@olivar/calculations';
 
 import ResultPanel from './ResultPanel';
+import { firstIssueOf, loadEngine } from '../lib/engine';
 import { useSettlementStore } from '../stores/useSettlementStore';
 import type { ParamSetPayload, ResultSummary } from '../lib/types';
 import {
@@ -462,27 +462,5 @@ function shareText(result: SettlementResult): string {
   ].join(' ');
 }
 
-/** Pull the first human-readable issue out of a zod error. */
-function firstIssueOf(error: unknown): string {
-  const issues = (error as { issues?: Array<{ message: string }> }).issues;
-  return issues?.[0]?.message ?? 'alguno de los campos no es válido';
-}
-
-/**
- * The calculation engine, zod and big.js included, is a lazy chunk.
- *
- * Spec §4.1 requires zod validation, and zod is the single heaviest thing the
- * island would otherwise pull in. Loading it on the first click keeps the
- * initial payload inside the §10.6 budget and lets the calculator paint long
- * before the engine arrives. Cached after the first call.
- */
-type CalculationsModule = typeof Calculations;
-
-let enginePromise: Promise<CalculationsModule> | null = null;
-
-function loadEngine(): Promise<CalculationsModule> {
-  enginePromise ??= import('@olivar/calculations');
-  return enginePromise;
-}
 
 // Imported at the bottom so the form markup reads first.

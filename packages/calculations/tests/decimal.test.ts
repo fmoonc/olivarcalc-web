@@ -129,6 +129,30 @@ describe('ParamReader', () => {
     expect(reader.campaign).toBe('2026-27');
   });
 
+  /**
+   * Spec §0.2 seeds a parameter empty when there is no defensible placeholder
+   * (`labor.employer_cost_pct`, the olive VAT rate, the provincial wages). A
+   * calculator that needs one has to name it, not fail on an empty string.
+   */
+  it('names the parameter when its value is still empty', () => {
+    const withEmpty = {
+      ...base,
+      params: {
+        'labor.employer_cost_pct': {
+          key: 'labor.employer_cost_pct',
+          value: '',
+          unit: '%',
+          verified: false,
+          source_label: 'Seguridad Social',
+          source_url: '',
+        },
+      },
+    };
+
+    expect(() => new ParamReader(withEmpty).decimal('labor.employer_cost_pct'))
+      .toThrow(/labor\.employer_cost_pct/);
+  });
+
   it('reads a string parameter and trims it', () => {
     const withStart = {
       ...base,

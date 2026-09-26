@@ -157,3 +157,32 @@ proyectos en `~/Desktop/www` que dependen de él. Astro 7 y Vitest 5 exigen
 **Consecuencias.** Este repo usa Node 24 sin arrastrar a los demás. Cada shell
 nuevo arranca con el `default` antiguo, así que hay que hacer `nvm use` antes
 de trabajar aquí. `package.json` declara `"engines": { "node": ">=24.0.0" }`.
+
+---
+
+## ADR-0009 — An empty parameter is a real state, so the UI has to know about it
+
+**Contexto.** Spec §0.2 forbids inventing official values, so
+`labor.employer_cost_pct` and every `wages.<province>.<category>.daily_eur` are
+seeded **empty** rather than given a plausible placeholder. That is the
+intended behaviour, and it made the harvest crew calculator throw
+`TypeError: Empty decimal` for every real user, after they had filled in the
+whole form.
+
+**Decisión.** Two layers.
+
+1. `ParamReader.decimal()` throws an error that **names the parameter**:
+   "El parámetro `labor.employer_cost_pct` todavía no tiene valor confirmado por
+   el propietario." No stack trace, no "Empty decimal".
+2. The harvest crew island **checks the paramSet it already holds** before
+   calculating, disables the "use the official value" option, and asks for the
+   manual figure up front.
+
+**Consecuencias.** The calculator is usable today with manual inputs, and gets
+better on its own as the owner verifies parameters — the option re-enables
+itself with no code change. The pattern generalises: any calculator that needs a
+seed-empty parameter should read it from the paramSet rather than discovering it
+through an exception.
+
+Verified end to end: the live API's paramSet, the golden fixtures and the values
+the islands send all agree on 14 figures.

@@ -47,6 +47,17 @@ export class ParamReader {
     if (!param.verified) {
       this.#unverified.add(key);
     }
+
+    // Spec §0.2: a parameter with no defensible placeholder is seeded empty
+    // rather than filled with a plausible number, so an empty value is a real
+    // state. A calculator that needs it must say so clearly instead of
+    // failing on an empty string.
+    if (param.value.trim() === '') {
+      throw new Error(
+        `El parámetro "${key}" todavía no tiene valor confirmado por el propietario.`,
+      );
+    }
+
     return toBig(param.value);
   }
 

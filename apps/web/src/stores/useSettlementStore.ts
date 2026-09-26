@@ -1,5 +1,7 @@
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
+
+import { persistedStorage } from '../lib/engine';
 
 /**
  * Form state for the settlement calculator (spec §10.4).
@@ -96,19 +98,8 @@ export const useSettlementStore = create<SettlementState>()(
     {
       name: 'olivarcalc:settlement',
       version: 1,
-      // Astro server-renders the island, and `persist` resolves its storage
-      // eagerly. Without this, `localStorage` is undefined in Node, the
-      // storage adapter comes back undefined and the store hydrates to nothing,
-      // so the server render crashes on `deliveries.length`.
-      storage: createJSONStorage(() =>
-        typeof window === 'undefined'
-          ? {
-              getItem: () => null,
-              setItem: () => undefined,
-              removeItem: () => undefined,
-            }
-          : window.localStorage,
-      ),
+      // Inert on the server; see the note in engine.ts.
+      storage: persistedStorage(),
       migrate: (persisted) => persisted as SettlementState,
     },
   ),

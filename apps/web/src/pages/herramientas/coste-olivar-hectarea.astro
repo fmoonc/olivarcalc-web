@@ -1,0 +1,72 @@
+---
+/**
+ * Coste y rentabilidad por hectárea (spec §10.2, §10.3).
+ */
+import Base from '../../layouts/Base.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import CostPerHectareCalculator from '../../components/CostPerHectareCalculator';
+import { getCurrentParameters, getToolPage } from '../../lib/api';
+import { PUBLIC_SITE_URL } from '../../lib/seo';
+
+const [paramSet, toolPage] = await Promise.all([
+  getCurrentParameters(),
+  getToolPage('cost_per_hectare'),
+]);
+
+const title = toolPage.meta_title ?? toolPage.title;
+const description =
+  toolPage.meta_description ??
+  'Qué te cuesta producir una hectárea de olivo y cuál es el margen con el precio actual del aceite.';
+---
+
+<Base
+  title={title}
+  description={description}
+  canonicalPath="/herramientas/coste-olivar-hectarea"
+  breadcrumbs={[{ name: 'Herramientas' }, { name: 'Coste por hectárea' }]}
+  schema={[
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebApplication',
+      name: 'Coste y rentabilidad por hectárea',
+      applicationCategory: 'FinanceApplication',
+      operatingSystem: 'web',
+      url: new URL('/herramientas/coste-olivar-hectarea', PUBLIC_SITE_URL).toString(),
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+      isAccessibleForFree: true,
+    },
+  ]}
+>
+  <h1 class="text-3xl font-bold text-olive-800">{toolPage.title}</h1>
+  {toolPage.intro_markdown && <p class="mt-2 max-w-2xl text-lg">{toolPage.intro_markdown}</p>}
+
+  <div class="mt-6">
+    <CostPerHectareCalculator paramSet={paramSet} client:load />
+  </div>
+
+  <AdSlot slot="after-result" format="horizontal" />
+
+  {
+    toolPage.body_markdown && (
+      <section class="prose mt-8 max-w-2xl">
+        <Fragment set:html={toolPage.body_markdown} />
+      </section>
+    )
+  }
+
+  {
+    toolPage.faq.length > 0 && (
+      <section class="mt-8 max-w-2xl">
+        <h2 class="text-2xl font-semibold text-olive-800">Preguntas frecuentes</h2>
+        <dl class="mt-3 space-y-4">
+          {toolPage.faq.map((item) => (
+            <div>
+              <dt class="font-semibold">{item.question}</dt>
+              <dd class="text-earth-600">{item.answer}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+    )
+  }
+</Base>
