@@ -93,23 +93,23 @@ describe('ParamReader', () => {
   const base = {
     version: '2026-27.1',
     campaign: '2026-27',
-    publishedAt: '2026-09-26T00:00:00+00:00',
+    published_at: '2026-09-26T00:00:00+00:00',
     params: {
       'oil.density_kg_per_l': {
         key: 'oil.density_kg_per_l',
         value: '0.916',
         unit: 'kg/L',
         verified: true,
-        sourceLabel: 'Reference',
-        sourceUrl: '',
+        source_label: 'Reference',
+        source_url: '',
       },
       'irpf.withholding_base_includes_vat': {
         key: 'irpf.withholding_base_includes_vat',
         value: 'false',
         unit: '',
         verified: false,
-        sourceLabel: 'AEAT',
-        sourceUrl: '',
+        source_label: 'AEAT',
+        source_url: '',
       },
     },
   };
@@ -139,8 +139,8 @@ describe('ParamReader', () => {
           value: ' 10-01 ',
           unit: 'MM-DD',
           verified: true,
-          sourceLabel: 'Sector convention',
-          sourceUrl: '',
+          source_label: 'Sector convention',
+          source_url: '',
         },
       },
     };
@@ -157,8 +157,8 @@ describe('ParamReader', () => {
           value: '10-01',
           unit: 'MM-DD',
           verified: false,
-          sourceLabel: '',
-          sourceUrl: '',
+          source_label: '',
+          source_url: '',
         },
       },
     });

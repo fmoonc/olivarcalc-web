@@ -5,7 +5,7 @@
  * OpenAPI spec version: 0.0.1
  */
 
-export type AuthenticationExceptionResponse = {
-  /** Error overview. */
-  message: string;
+export type V1OilPricesCampaignSummary200 = {
+  campaign: string;
+  data: string;
 };

@@ -10,21 +10,604 @@
         }
     ],
     "paths": {
-        "\/user": {
+        "\/v1\/build-manifest": {
             "get": {
+                "operationId": "v1.build-manifest",
+                "tags": [
+                    "BuildManifest"
+                ],
                 "responses": {
                     "200": {
-                        "description": "`User`",
+                        "description": "",
                         "content": {
                             "application\/json": {
                                 "schema": {
-                                    "$ref": "#\/components\/schemas\/User"
+                                    "type": "object",
+                                    "properties": {
+                                        "generated_at": {
+                                            "type": "string"
+                                        },
+                                        "campaign": {
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ]
+                                        },
+                                        "latest_price_week": {
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ]
+                                        },
+                                        "articles": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "slug": {
+                                                        "type": "string"
+                                                    },
+                                                    "lastmod": {
+                                                        "type": [
+                                                            "string",
+                                                            "null"
+                                                        ],
+                                                        "description": "A guide's lastmod is the later of publication and last edit."
+                                                    },
+                                                    "related_tool": {
+                                                        "type": [
+                                                            "string",
+                                                            "null"
+                                                        ]
+                                                    }
+                                                },
+                                                "required": [
+                                                    "slug",
+                                                    "lastmod",
+                                                    "related_tool"
+                                                ]
+                                            }
+                                        },
+                                        "categories": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "slug": {
+                                                        "type": "string"
+                                                    },
+                                                    "name": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "slug",
+                                                    "name"
+                                                ]
+                                            }
+                                        },
+                                        "tool_pages": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "tool_key": {
+                                                        "type": "string"
+                                                    },
+                                                    "lastmod": {
+                                                        "type": [
+                                                            "string",
+                                                            "null"
+                                                        ]
+                                                    }
+                                                },
+                                                "required": [
+                                                    "tool_key",
+                                                    "lastmod"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "generated_at",
+                                        "campaign",
+                                        "latest_price_week",
+                                        "articles",
+                                        "categories",
+                                        "tool_pages"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "\/v1\/categories": {
+            "get": {
+                "operationId": "v1.categories",
+                "summary": "GET \/api\/v1\/categories",
+                "tags": [
+                    "Content"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application\/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "\/v1\/articles": {
+            "get": {
+                "operationId": "v1.articles.index",
+                "description": "Paginated in Laravel's standard shape (data \/ links \/ meta), spec \u00a77.1.",
+                "summary": "GET \/api\/v1\/articles",
+                "tags": [
+                    "Content"
+                ],
+                "parameters": [
+                    {
+                        "name": "category",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 100
+                        }
+                    },
+                    {
+                        "name": "tool",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "settlement",
+                                "yield_converter",
+                                "cost_per_hectare",
+                                "harvest_crew"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 50
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application\/json": {
+                                "schema": {
+                                    "type": "object"
                                 }
                             }
                         }
                     },
-                    "401": {
-                        "$ref": "#\/components\/responses\/AuthenticationException"
+                    "422": {
+                        "$ref": "#\/components\/responses\/ValidationException"
+                    }
+                }
+            }
+        },
+        "\/v1\/articles\/{slug}": {
+            "get": {
+                "operationId": "v1.articles.show",
+                "summary": "GET \/api\/v1\/articles\/{slug}",
+                "tags": [
+                    "Content"
+                ],
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application\/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application\/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "\/v1\/tool-pages\/{toolKey}": {
+            "get": {
+                "operationId": "v1.tool-pages.show",
+                "summary": "GET \/api\/v1\/tool-pages\/{tool_key}",
+                "tags": [
+                    "Content"
+                ],
+                "parameters": [
+                    {
+                        "name": "toolKey",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application\/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application\/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "\/v1\/affiliate-products": {
+            "get": {
+                "operationId": "v1.affiliate-products",
+                "summary": "GET \/api\/v1\/affiliate-products",
+                "tags": [
+                    "Content"
+                ],
+                "parameters": [
+                    {
+                        "name": "category",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 100
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application\/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#\/components\/responses\/ValidationException"
+                    }
+                }
+            }
+        },
+        "\/v1\/oil-prices": {
+            "get": {
+                "operationId": "v1.oil-prices.index",
+                "description": "The weekly series, filtered by quality and date range.",
+                "summary": "GET \/api\/v1\/oil-prices",
+                "tags": [
+                    "OilPrice"
+                ],
+                "parameters": [
+                    {
+                        "name": "quality",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "extra",
+                                "virgin",
+                                "lampante"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "from",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "to",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application\/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#\/components\/schemas\/OilPriceResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#\/components\/responses\/ValidationException"
+                    }
+                }
+            }
+        },
+        "\/v1\/oil-prices\/latest": {
+            "get": {
+                "operationId": "v1.oil-prices.latest",
+                "description": "Latest published week per quality, plus the week-over-week change.\nThe change is computed here, on the server, as a decimal: a client doing\nit in floating point would drift (spec \u00a74.5).",
+                "summary": "GET \/api\/v1\/oil-prices\/latest",
+                "tags": [
+                    "OilPrice"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application\/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "\/v1\/oil-prices\/campaigns\/{campaign}\/summary": {
+            "get": {
+                "operationId": "v1.oil-prices.campaign-summary",
+                "description": "Mean, max and min per quality within a campaign. Spec \u00a74.5.",
+                "summary": "GET \/api\/v1\/oil-prices\/campaigns\/{campaign}\/summary",
+                "tags": [
+                    "OilPrice"
+                ],
+                "parameters": [
+                    {
+                        "name": "campaign",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application\/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "campaign": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "campaign",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "",
+                        "content": {
+                            "application\/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "\/v1\/parameters\/current": {
+            "get": {
+                "operationId": "v1.parameters.current",
+                "description": "The set that is live for a campaign. Optional `?campaign=` narrows it.",
+                "summary": "GET \/api\/v1\/parameters\/current",
+                "tags": [
+                    "Parameter"
+                ],
+                "parameters": [
+                    {
+                        "name": "campaign",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^\\d{4}-\\d{2}$"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application\/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application\/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "anyOf": [
+                                                {
+                                                    "type": "string"
+                                                },
+                                                {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "No hay un conjunto de par\u00e1metros publicado."
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#\/components\/responses\/ValidationException"
+                    }
+                }
+            }
+        },
+        "\/v1\/parameters\/{version}": {
+            "get": {
+                "operationId": "v1.parameters.show",
+                "description": "A specific set, so an old saved calculation can be shown again with the\nfigures it was actually made with (spec \u00a77.2).",
+                "summary": "GET \/api\/v1\/parameters\/{version}",
+                "tags": [
+                    "Parameter"
+                ],
+                "parameters": [
+                    {
+                        "name": "version",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application\/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application\/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -32,93 +615,61 @@
     },
     "components": {
         "schemas": {
-            "User": {
+            "OilPriceResource": {
                 "type": "object",
                 "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "name": {
+                    "week_start": {
                         "type": "string"
                     },
-                    "email": {
+                    "week_end": {
                         "type": "string"
                     },
-                    "email_verified_at": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "format": "date-time"
+                    "quality": {
+                        "type": "string"
                     },
-                    "role": {
-                        "$ref": "#\/components\/schemas\/UserRole"
+                    "avg_price_eur_t": {
+                        "type": "string",
+                        "description": "Decimal strings, per spec \u00a77.1."
                     },
-                    "province": {
+                    "avg_price_eur_kg": {
+                        "type": "string"
+                    },
+                    "volume_t": {
                         "type": [
                             "string",
                             "null"
                         ]
                     },
-                    "marketing_opt_in": {
+                    "provisional": {
                         "type": "boolean"
                     },
-                    "last_login_at": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "format": "date-time"
+                    "source": {
+                        "type": "string"
                     },
-                    "created_at": {
+                    "source_url": {
                         "type": [
                             "string",
                             "null"
-                        ],
-                        "format": "date-time"
-                    },
-                    "updated_at": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "format": "date-time"
-                    },
-                    "deleted_at": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "format": "date-time"
+                        ]
                     }
                 },
                 "required": [
-                    "id",
-                    "name",
-                    "email",
-                    "email_verified_at",
-                    "role",
-                    "province",
-                    "marketing_opt_in",
-                    "last_login_at",
-                    "created_at",
-                    "updated_at",
-                    "deleted_at"
+                    "week_start",
+                    "week_end",
+                    "quality",
+                    "avg_price_eur_t",
+                    "avg_price_eur_kg",
+                    "volume_t",
+                    "provisional",
+                    "source",
+                    "source_url"
                 ],
-                "title": "User"
-            },
-            "UserRole": {
-                "type": "string",
-                "enum": [
-                    "user",
-                    "admin"
-                ],
-                "title": "UserRole"
+                "title": "OilPriceResource"
             }
         },
         "responses": {
-            "AuthenticationException": {
-                "description": "Unauthenticated",
+            "ValidationException": {
+                "description": "Validation error",
                 "content": {
                     "application\/json": {
                         "schema": {
@@ -126,11 +677,22 @@
                             "properties": {
                                 "message": {
                                     "type": "string",
-                                    "description": "Error overview."
+                                    "description": "Errors overview."
+                                },
+                                "errors": {
+                                    "type": "object",
+                                    "description": "A detailed description of each field that failed validation.",
+                                    "additionalProperties": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
                                 }
                             },
                             "required": [
-                                "message"
+                                "message",
+                                "errors"
                             ]
                         }
                     }

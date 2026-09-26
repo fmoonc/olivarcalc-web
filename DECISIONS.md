@@ -97,6 +97,29 @@ versión más reciente que ya haya pasado el gate. Si `yarn install` falla con
 
 ---
 
+## ADR-0007 — The API speaks snake_case, so `ParamSet` does too
+
+**Contexto.** Spec §7.1 requires snake_case JSON and says explicitly "orval
+puede mapear a camelCase si se configura; decidir y documentar en
+`DECISIONS.md`". The `ParamSet` shape in this package was originally camelCase
+(`sourceLabel`, `publishedAt`), which did not match what Laravel emits.
+
+**Decisión.** snake_case for the two shapes the API actually serialises
+(`ParamValue`, `ParamSet`). Calculation *results* stay camelCase, because they
+never cross the wire: the API stores `results` as an opaque JSON blob and does
+not parse it (spec §7.4), so there is no contract to satisfy.
+
+**Consecuencias.** The alternative — having orval rename everything to camelCase
+— was rejected because it depends on the transformer working, and ADR-0002
+already established that orval's react-query client is not honouring our config
+here. Building on a broken transformer would be building on sand.
+
+A consequence worth remembering: `assertJsonPath('params.oil.density_kg_per_l')`
+silently fails in Pest, because the dots in the key read as a nested path. Use
+bracket access on the decoded JSON for any parameter key.
+
+---
+
 ## ADR-0006 — El nodo se fija por proyecto con `.nvmrc`, no en el `default` de nvm
 
 **Contexto.** La máquina tenía Node 18.13.0 como `default` de nvm, y hay otros

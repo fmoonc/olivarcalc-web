@@ -14,7 +14,13 @@
  */
 export type DecimalInput = string | number;
 
-/** A single official parameter, as served by `GET /v1/parameters/current`. */
+/**
+ * A single official parameter, as served by `GET /v1/parameters/current`.
+ *
+ * Field names are snake_case because this shape IS the API wire format: the
+ * Laravel API speaks snake_case throughout (spec §7.1) and there is no
+ * transformer in front of it. See DECISIONS.md ADR-0007.
+ */
 export type ParamValue = {
   key: string;
   /** Decimal as a string. Converted with big.js; never parsed to float. */
@@ -22,14 +28,14 @@ export type ParamValue = {
   unit: string;
   /** false means "provisional, owner must confirm against the official source". */
   verified: boolean;
-  sourceLabel: string;
-  sourceUrl: string;
+  source_label: string;
+  source_url: string;
 };
 
 export type ParamSet = {
   version: string;
   campaign: string;
-  publishedAt: string;
+  published_at: string;
   params: Record<string, ParamValue>;
 };
 
@@ -61,7 +67,14 @@ export type Warning = {
   keys?: string[];
 };
 
-/** Shape shared by every calculator result (spec §4.1). */
+/**
+ * Shape shared by every calculator result (spec §4.1).
+ *
+ * These stay camelCase: they never cross the wire. The API stores a saved
+ * calculation's results as an opaque JSON blob and does not parse it (spec
+ * §7.4), so there is no contract to conform to here. Only the `ParamSet`
+ * above, which the API really does serialise, follows snake_case.
+ */
 export type CalcResult = {
   /** Which formula version produced this, stored with saved calculations. */
   calcVersion: string;

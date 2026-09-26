@@ -33,11 +33,11 @@ export function paramSet(overrides: Record<string, string | { value: string; ver
   return {
     version: '2026-27.1',
     campaign: '2026-27',
-    publishedAt: '2026-09-26T00:00:00+00:00',
+    published_at: '2026-09-26T00:00:00+00:00',
     params: Object.fromEntries(
       Object.entries(merged).map(([key, { value, verified }]) => [
         key,
-        { key, value, unit: '', verified, sourceLabel: 'test', sourceUrl: '' },
+        { key, value, unit: '', verified, source_label: 'test', source_url: '' },
       ]),
     ),
   };
