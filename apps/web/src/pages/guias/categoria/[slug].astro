@@ -1,0 +1,67 @@
+---
+/**
+ * Guides in one category (spec §10.2).
+ */
+import Base from '../../../layouts/Base.astro';
+import { getArticles, getCategories } from '../../../lib/api';
+import { formatDate } from '../../../lib/format';
+import { toolPath } from '../../../lib/toolPaths';
+
+/**
+ * One static page per category that actually exists. A category deleted in
+ * Filament stops producing a page on the next build, rather than leaving a
+ * broken link behind.
+ */
+export async function getStaticPaths() {
+  const categories = await getCategories();
+
+  return categories.map((category) => ({
+    params: { slug: category.slug },
+    props: { category },
+  }));
+}
+
+type Props = { category: Awaited<ReturnType<typeof getCategories>>[number] };
+
+const { category } = Astro.props;
+
+const { articles } = await getArticles({ category: category.slug, perPage: 50 });
+---
+
+<Base
+  title={`Guías de ${category.name}`}
+  description={category.description ?? `Guías de ${category.name} para olivareros.`}
+  canonicalPath={`/guias/categoria/${category.slug}`}
+  breadcrumbs={[
+    { name: 'Guías', href: '/guias' },
+    { name: category.name },
+  ]}
+>
+  <h1 class="text-3xl font-bold text-olive-800">{category.name}</h1>
+  {category.description && <p class="mt-2 max-w-2xl text-lg">{category.description}</p>}
+
+  <ul class="mt-6 space-y-4">
+    {
+      articles.map((article) => (
+        <li class="card">
+          <p class="text-xs text-earth-600">{formatDate(article.published_at)}</p>
+          <h2 class="mt-1 text-xl font-semibold text-olive-800">
+            <a href={`/guias/${article.slug}`}>{article.title}</a>
+          </h2>
+          <p class="mt-1 text-earth-600">{article.excerpt}</p>
+          {article.related_tool && (
+            <p class="mt-2 text-sm">
+              <a class="underline" href={`/herramientas/${toolPath(article.related_tool)}`}>
+                Ir a la herramienta relacionada
+              </a>
+            </p>
+          )}
+        </li>
+      ))
+    }
+  </ul>
+
+  <p class="mt-6">
+    <a class="underline" href="/guias">Ver todas las guías</a>
+  </p>
+</Base>

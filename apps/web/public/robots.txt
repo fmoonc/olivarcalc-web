@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Spec §11: the private area is not for crawlers.
+Disallow: /cuenta
+Disallow: /cuenta/
+
+Sitemap: https://olivarcalc.es/sitemap-index.xml

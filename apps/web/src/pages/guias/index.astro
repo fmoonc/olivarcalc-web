@@ -1,0 +1,80 @@
+---
+/**
+ * Guides index (spec §10.2). Slugs and copy come from the API's build manifest,
+ * so adding a guide in Filament and rebuilding is all it takes.
+ */
+import Base from '../../layouts/Base.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import { getArticles, getCategories } from '../../lib/api';
+import { formatDate } from '../../lib/format';
+import { toolPath } from '../../lib/toolPaths';
+
+const [{ articles }, categories] = await Promise.all([
+  getArticles({ perPage: 50 }),
+  getCategories(),
+]);
+---
+
+<Base
+  title="Guías del olivar"
+  description="Guías prácticas sobre cultivo, cosecha, almazara y precios del aceite de oliva."
+  canonicalPath="/guias"
+  breadcrumbs={[{ name: 'Guías' }]}
+>
+  <h1 class="text-3xl font-bold text-olive-800">Guías</h1>
+  <p class="mt-2 max-w-2xl text-lg">
+    Explicaciones sin jerga sobre el indices, los rendimientos y los precios.
+  </p>
+
+  {
+    categories.length > 0 && (
+      <nav aria-label="Categorías" class="mt-5">
+        <ul class="flex flex-wrap gap-2">
+          {categories.map((category) => (
+            <li>
+              <a
+                class="btn btn-secondary"
+                href={`/guias/categoria/${category.slug}`}
+              >
+                {category.name}
+                {category.articles_count > 0 && (
+                  <span class="text-earth-600"> ({category.articles_count})</span>
+                )}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    )
+  }
+
+  <AdSlot slot="after-result" format="horizontal" />
+
+  <ul class="mt-6 space-y-4">
+    {
+      articles.map((article) => (
+        <li class="card">
+          <div class="flex flex-wrap items-baseline justify-between gap-2">
+            {article.category && (
+              <p class="text-xs uppercase tracking-wide text-earth-600">
+                {article.category.name}
+              </p>
+            )}
+            <p class="text-xs text-earth-600">{formatDate(article.published_at)}</p>
+          </div>
+          <h2 class="mt-1 text-xl font-semibold text-olive-800">
+            <a href={`/guias/${article.slug}`}>{article.title}</a>
+          </h2>
+          <p class="mt-1 text-earth-600">{article.excerpt}</p>
+          {article.related_tool && (
+            <p class="mt-2 text-sm">
+              <a class="underline" href={`/herramientas/${toolPath(article.related_tool)}`}>
+                Ir a la herramienta relacionada
+              </a>
+            </p>
+          )}
+        </li>
+      ))
+    }
+  </ul>
+</Base>

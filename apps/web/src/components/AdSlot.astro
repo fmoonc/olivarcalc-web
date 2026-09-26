@@ -1,0 +1,57 @@
+---
+/**
+ * A Google AdSense slot. Spec §12.
+ *
+ * Three rules this component exists to enforce:
+ * 1. Nothing renders at all when no publisher id is configured, so local and
+ *    staging ship zero ad code.
+ * 2. The container has a reserved height (`.ad-slot`), because an ad that
+ *    pushes content down blows the CLS budget of §10.6.
+ * 3. No ad script is requested before consent. The Google CMP (§12) is what
+ *    fires the load, so `data-adblock` is present and we only bootstrap the
+ *    library when consent is already granted.
+ */
+import { ADSENSE_PUBLISHER_ID, PUBLIC_ADSENSE_CLIENT } from '../lib/seo';
+
+type Props = {
+  slot: string;
+  format?: 'auto' | 'horizontal' | 'rectangle' | 'vertical';
+  /** Excluded by spec §12 from /cuenta, legal pages and 404. */
+  class?: string;
+};
+
+const { slot, format = 'auto', class: className = '' } = Astro.props;
+const configured = Boolean(PUBLIC_ADSENSE_CLIENT && ADSENSE_PUBLISHER_ID);
+---
+
+{
+  configured && (
+    <aside class={`ad-slot ${className}`} aria-label="Publicidad" data-ad-slot={slot}>
+      <ins
+        class="adsbygoogle"
+        style="display:block"
+        data-ad-client={PUBLIC_ADSENSE_CLIENT}
+        data-ad-slot={slot}
+        data-ad-format={format}
+        data-full-width-responsive="true"
+      />
+      <script is:inline define:vars={{ adClient: PUBLIC_ADSENSE_CLIENT }}>
+        // Loaded lazily and only once consent exists. The Google CMP
+        // (Privacy & Messaging) owns the consent signal.
+        window.__loadOlivarAds ??= async () => {
+          const consent = await window.__olivarConsent?.();
+          if (!consent?.adStorage) return;
+          if (!document.querySelector('script[data-olivar-ads]')) {
+            const s = document.createElement('script');
+            s.async = true;
+            s.crossOrigin = 'anonymous';
+            s.dataset.olivarAds = '1';
+            s.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adClient}`;
+            document.head.appendChild(s);
+          }
+          (window.adsbygoogle = window.adsbygoogle || []).push({});
+        };
+      </script>
+    </aside>
+  )
+}

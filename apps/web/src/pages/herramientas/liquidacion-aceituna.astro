@@ -1,0 +1,80 @@
+---
+/**
+ * Calculadora de liquidación de aceituna (spec §10.2, §10.3).
+ *
+ * Static shell + client island. The page copy comes from the API's
+ * `tool_pages`, so the owner can revise it without a deploy; the build fails if
+ * the API is unreachable (§10.1).
+ */
+import Base from '../../layouts/Base.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import SettlementCalculator from '../../components/SettlementCalculator';
+import { getCurrentParameters, getToolPage } from '../../lib/api';
+import { PUBLIC_SITE_URL } from '../../lib/seo';
+
+const [paramSet, toolPage] = await Promise.all([
+  getCurrentParameters(),
+  getToolPage('settlement'),
+]);
+
+const title = toolPage.meta_title ?? toolPage.title;
+const description =
+  toolPage.meta_description ??
+  'Calcula lo que te van a pagar por tu aceituna, con IVA o REAGP y retención de IRPF.';
+---
+
+<Base
+  title={title}
+  description={description}
+  canonicalPath="/herramientas/liquidacion-aceituna"
+  breadcrumbs={[
+    { name: 'Herramientas', href: '/herramientas/liquidacion-aceituna' },
+    { name: 'Liquidación de aceituna' },
+  ]}
+  schema={[
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebApplication',
+      name: 'Calculadora de liquidación de aceituna',
+      applicationCategory: 'FinanceApplication',
+      operatingSystem: 'web',
+      url: new URL('/herramientas/liquidacion-aceituna', PUBLIC_SITE_URL).toString(),
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+      isAccessibleForFree: true,
+    },
+  ]}
+>
+  <h1 class="text-3xl font-bold text-olive-800">{toolPage.title}</h1>
+  {toolPage.intro_markdown && <p class="mt-2 max-w-2xl text-lg">{toolPage.intro_markdown}</p>}
+
+  <div class="mt-6">
+    {/* client:load: this is the one calculator on the page (spec §10.1). */}
+    <SettlementCalculator paramSet={paramSet} client:load />
+  </div>
+
+  <AdSlot slot="after-result" format="horizontal" />
+
+  {
+    toolPage.body_markdown && (
+      <section class="prose mt-8 max-w-2xl">
+        <Fragment set:html={toolPage.body_markdown} />
+      </section>
+    )
+  }
+
+  {
+    toolPage.faq.length > 0 && (
+      <section class="mt-8 max-w-2xl">
+        <h2 class="text-2xl font-semibold text-olive-800">Preguntas frecuentes</h2>
+        <dl class="mt-3 space-y-4">
+          {toolPage.faq.map((item) => (
+            <div>
+              <dt class="font-semibold">{item.question}</dt>
+              <dd class="text-earth-600">{item.answer}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+    )
+  }
+</Base>

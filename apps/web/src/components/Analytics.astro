@@ -1,0 +1,46 @@
+---
+/**
+ * GA4 with Consent Mode v2. Spec §12.
+ *
+ * The default state is `denied` for all four signals, and the tag is only
+ * loaded once consent is granted. The page stays functional and ad-free
+ * without it: no third-party script is requested at all until then.
+ */
+import { PUBLIC_GA4_ID } from '../lib/seo';
+
+const configured = Boolean(PUBLIC_GA4_ID);
+---
+
+{
+  configured && (
+    <>
+      <script is:inline define:vars={{ ga4Id: PUBLIC_GA4_ID }}>
+        // Consent Mode v2 defaults, set before any tag could run.
+        window.dataLayer = window.dataLayer || [];
+        function gtag() {
+          dataLayer.push(arguments);
+        }
+        gtag('consent', 'default', {
+          ad_storage: 'denied',
+          ad_user_data: 'denied',
+          ad_personalization: 'denied',
+          analytics_storage: 'denied',
+        });
+        window.__olivarConsent ??= () => window.gtag('consent', 'update', {});
+        window.__loadOlivarAnalytics ??= async () => {
+          const consent = await window.__olivarConsent?.();
+          if (consent?.analyticsStorage !== 'granted') return;
+          if (!document.querySelector('script[data-olivar-ga]')) {
+            const s = document.createElement('script');
+            s.async = true;
+            s.dataset.olivarGa = '1';
+            s.src = `https://www.googletagmanager.com/gtag/js?id=${ga4Id}`;
+            document.head.appendChild(s);
+            gtag('js', new Date());
+            gtag('config', ga4Id);
+          }
+        };
+      </script>
+    </>
+  )
+}

@@ -1,0 +1,34 @@
+---
+/**
+ * Legal and static pages (spec §10.2).
+ *
+ * The body is a template full of `{{...}}` placeholders. Spec §10.2 is explicit:
+ * do not invent definitive legal text. The owner fills these in before launch
+ * (Fase 8 checklist).
+ */
+import Base from './Base.astro';
+
+type Props = {
+  title: string;
+  description: string;
+  path: string;
+  updatedAt?: string | null;
+};
+
+const { title, description, path, updatedAt = null } = Astro.props;
+---
+
+<Base title={title} description={description} canonicalPath={path}>
+  <article class="prose max-w-2xl">
+    <h1 class="text-3xl font-bold text-olive-800">{title}</h1>
+    {
+      updatedAt && (
+        <p class="mt-1 text-sm text-earth-600">
+          Última actualización:{' '}
+          {new Date(updatedAt).toLocaleDateString('es-ES')}
+        </p>
+      )
+    }
+    <slot />
+  </article>
+</Base>

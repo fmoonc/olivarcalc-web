@@ -97,6 +97,31 @@ versión más reciente que ya haya pasado el gate. Si `yarn install` falla con
 
 ---
 
+## ADR-0008 — The calculation engine and Recharts load on demand
+
+**Contexto.** Spec §10.6 caps a tool page at 90 KB gzip of JS. With a React 19
+island the Astro client runtime alone is ~64 KB gzip, and zod (required by
+§4.1) added ~30 KB more: the settlement page shipped at **100.9 KB**, over
+budget.
+
+**Decisión.** Keep zod, but `import('@olivar/calculations')` on the first
+"Calcular" click, and `import('./PriceChartInner')` on first interaction with
+the chart. Measured result: **75.1 KB initial**, 130.7 KB split across two lazy
+chunks that no `modulepreload` pulls in.
+
+**Consecuencias.** The budget is met and the calculator paints before its engine
+arrives, which also helps LCP. The trade-off: the first click waits for a
+chunk, so the button shows a "Calculando…" state. If a future Lighthouse run
+counts total page bytes rather than the initial load, these chunks have to be
+counted too — the split is worth revisiting then.
+
+One related gotcha: Astro server-renders islands, and `zustand/persist`
+resolves its storage eagerly. Without an explicit no-op storage on the server,
+`localStorage` is undefined in Node, the store hydrates to nothing, and the SSR
+pass crashes on `deliveries.length`.
+
+---
+
 ## ADR-0007 — The API speaks snake_case, so `ParamSet` does too
 
 **Contexto.** Spec §7.1 requires snake_case JSON and says explicitly "orval

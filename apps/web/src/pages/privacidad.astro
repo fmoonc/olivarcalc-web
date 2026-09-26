@@ -1,0 +1,45 @@
+---
+import Legal from '../layouts/Legal.astro';
+---
+
+<Legal
+  title="Política de privacidad"
+  description="Qué datos recoge OlivarCalc, con qué finalidad y cómo se ejercen los derechos."
+  path="/privacidad"
+>
+  <div class="mt-4 rounded border border-amber-300 bg-amber-50 p-4 text-amber-900">
+    <p class="font-semibold">PLANTILLA PENDIENTE DE REVISIÓN</p>
+    <p class="text-sm">
+      Marcadores para que el propietario redacte el texto definitivo. No se ha
+      inventado ningún dato (spec §10.2).
+    </p>
+  </div>
+
+  <h2 class="mt-6 text-xl font-semibold text-olive-800">Responsable del tratamiento</h2>
+  <p>{'{{RAZON_SOCIAL}}'}</p>
+  <p>Correo de contacto: {'{{EMAIL_PRIVACIDAD}}'}</p>
+
+  <h2 class="mt-6 text-xl font-semibold text-olive-800">Qué datos se recogen</h2>
+  <p>{'{{DATOS_RECOGIDOS}}'}</p>
+  <p>
+    Las calculadoras <strong>no requieren cuenta</strong> y los datos que
+    introduces se procesan en tu navegador. Solo se guardan en nuestros
+    servidores si los guardas tú en tu cuenta.
+  </p>
+
+  <h2 class="mt-6 text-xl font-semibold text-olive-800">Finalidad y base legal</h2>
+  <p>{'{{FINALIDAD_Y_BASE_LEGAL}}'}</p>
+
+  <h2 class="mt-6 text-xl font-semibold text-olive-800">Destinatarios</h2>
+  <p>{'{{DESTINATARIOS}}'}</p>
+
+  <h2 class="mt-6 text-xl font-semibold text-olive-800">Conservación</h2>
+  <p>{'{{PLAZOS_DE_CONSERVACION}}'}</p>
+
+  <h2 class="mt-6 text-xl font-semibold text-olive-800">Tus derechos</h2>
+  <p>{'{{DERECHOS_ARCO}}'}</p>
+  <p>
+    Puedes exportar o borrar tu cuenta desde la sección de cuenta. Si la
+    borras, los datos se eliminan {'{{PLAZO_BORRADO}}'}.
+  </p>
+</Legal>

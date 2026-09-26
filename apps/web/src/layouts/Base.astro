@@ -1,0 +1,141 @@
+---
+/**
+ * Base layout. Owns the document head, the SEO metadata of spec §11, the
+ * consent-aware ad/analytics slots, and the shared header/footer.
+ */
+import AdSlot from '../components/AdSlot.astro';
+import Analytics from '../components/Analytics.astro';
+import { PUBLIC_SITE_NAME, PUBLIC_SITE_URL } from '../lib/seo';
+
+export type Breadcrumb = { name: string; href?: string };
+
+type Props = {
+  title: string;
+  description: string;
+  /** Slug-based canonical path, e.g. "/guias/mi-guia". */
+  canonicalPath: string;
+  /** Rendered inside <main>. */
+  noindex?: boolean;
+  breadcrumbs?: Breadcrumb[];
+  /** JSON-LD objects for this page (spec §11). */
+  schema?: unknown[];
+  type?: 'website' | 'article';
+};
+
+const {
+  title,
+  description,
+  canonicalPath,
+  noindex = false,
+  breadcrumbs = [],
+  schema = [],
+  type = 'website',
+} = Astro.props;
+
+const canonical = new URL(canonicalPath, PUBLIC_SITE_URL).toString();
+const fullTitle = title.includes(PUBLIC_SITE_NAME) ? title : `${title} | ${PUBLIC_SITE_NAME}`;
+
+// BreadcrumbList is on every page, per spec §11.
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [{ name: 'Inicio', href: '/' }, ...breadcrumbs].map((crumb, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: crumb.name,
+      ...(crumb.href ? { item: new URL(crumb.href, PUBLIC_SITE_URL).toString() } : {}),
+    })),
+  },
+  ...schema,
+];
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+    <meta property="og:type" content={type} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content={PUBLIC_SITE_NAME} />
+    <meta property="og:locale" content="es_ES" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
+  </head>
+
+  <body>
+    <a
+      href="#contenido"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-white focus:px-3 focus:py-2"
+    >
+      Saltar al contenido
+    </a>
+
+    <header class="border-b border-earth-200 bg-white">
+      <div class="container-page flex items-center justify-between gap-4 py-3">
+        <a href="/" class="text-lg font-bold text-olive-800">
+          {PUBLIC_SITE_NAME}
+        </a>
+        <nav aria-label="Principal">
+          <ul class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+            <li><a class="hover:text-olive-700" href="/herramientas/liquidacion-aceituna">Liquidación</a></li>
+            <li><a class="hover:text-olive-700" href="/herramientas/rendimiento-aceituna">Rendimiento</a></li>
+            <li><a class="hover:text-olive-700" href="/precio-aceite-oliva">Precios</a></li>
+            <li><a class="hover:text-olive-700" href="/herramientas/coste-olivar-hectarea">Costes</a></li>
+            <li><a class="hover:text-olive-700" href="/guias">Guías</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main id="contenido" class="container-page py-6">
+      <slot />
+    </main>
+
+    <footer class="mt-10 border-t border-earth-200 bg-white">
+      <div class="container-page flex flex-col gap-2 py-6 text-sm text-earth-600">
+        <nav aria-label="Legal">
+          <ul class="flex flex-wrap gap-x-4 gap-y-1">
+            <li><a class="hover:text-olive-700" href="/sobre-mi">Sobre mí</a></li>
+            <li><a class="hover:text-olive-700" href="/aviso-legal">Aviso legal</a></li>
+            <li><a class="hover:text-olive-700" href="/privacidad">Privacidad</a></li>
+            <li><a class="hover:text-olive-700" href="/cookies">Cookies</a></li>
+            <li><a class="hover:text-olive-700" href="/afiliacion">Afiliación</a></li>
+          </ul>
+        </nav>
+        <p>
+          Resultados orientativos. No sustituyen el asesoramiento profesional.
+        </p>
+      </div>
+    </footer>
+
+    <!--
+      Spec §12: no ad or analytics script may run before consent. AdSlot
+      renders nothing at all when PUBLIC_ADSENSE_CLIENT is empty, which is the
+      case in local and staging.
+    -->
+    <AdSlot slot="footer" format="horizontal" />
+    <Analytics />
+  </body>
+</html>
+
+<style is:global>
+  @import '../styles/global.css';
+</style>

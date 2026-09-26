@@ -1,0 +1,41 @@
+---
+import Legal from '../layouts/Legal.astro';
+---
+
+<Legal
+  title="Aviso legal"
+  description="Aviso legal de OlivarCalc."
+  path="/aviso-legal"
+>
+  <div class="mt-4 rounded border border-amber-300 bg-amber-50 p-4 text-amber-900">
+    <p class="font-semibold">PLANTILLA PENDIENTE DE REVISIÓN</p>
+    <p class="text-sm">
+      Este texto es una plantilla con marcadores. El propietario debe redactar y
+      revisar el aviso legal definitivo antes del lanzamiento (spec §10.2, Fase 8).
+    </p>
+  </div>
+
+  <h2 class="mt-6 text-xl font-semibold text-olive-800">Titular</h2>
+  <p>{'{{RAZON_SOCIAL}}'}</p>
+  <p>{'{{DOMICILIO_FISCAL}}'}</p>
+  <p>CIF/NIF: {'{{CIF}}'}</p>
+
+  <h2 class="mt-6 text-xl font-semibold text-olive-800">Titular del sitio web</h2>
+  <p>{'{{NOMBRE_Y_APELLIDOS}}'}</p>
+  <p>Domicilio: {'{{DOMICILIO}}'}</p>
+
+  <h2 class="mt-6 text-xl font-semibold text-olive-800">Condiciones de uso</h2>
+  <p>
+    {'{{CONDICIONES_DE_USO}}'}
+  </p>
+  <p>
+    Los resultados que ofrece este sitio son <strong>orientativos</strong> y no
+    sustituyen el asesoramiento profesional ni constituyen una liquidación oficial.
+  </p>
+
+  <h2 class="mt-6 text-xl font-semibold text-olive-800">Propiedad intelectual</h2>
+  <p>{'{{PROPIEDAD_INTELECTUAL}}'}</p>
+
+  <h2 class="mt-6 text-xl font-semibold text-olive-800">Legislación aplicable</h2>
+  <p>{'{{LEGISLACION_APLICABLE_Y_JURISDICCION}}'}</p>
+</Legal>

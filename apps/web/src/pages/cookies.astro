@@ -1,0 +1,36 @@
+---
+import Legal from '../layouts/Legal.astro';
+---
+
+<Legal
+  title="Política de cookies"
+  description="Qué cookies usa OlivarCalc y cómo gestionarlas."
+  path="/cookies"
+>
+  <div class="mt-4 rounded border border-amber-300 bg-amber-50 p-4 text-amber-900">
+    <p class="font-semibold">PLANTILLA PENDIENTE DE REVISIÓN</p>
+    <p class="text-sm">
+      Marcadores para el propietario. El listado de cookies debe coincidir con
+      lo que se genere realmente (spec §10.2).
+    </p>
+  </div>
+
+  <h2 class="mt-6 text-xl font-semibold text-olive-800">Cookies propias</h2>
+  <p>{'{{COOKIES_PROPIAS}}'}</p>
+  <p>
+    Las calculadoras guardan temporalmente lo que escribes en tu navegador
+    (localStorage) para que no pierdas los datos si se corta la cobertura en el
+    campo. Eso no es una cookie y no se envía a nuestros servidores.
+  </p>
+
+  <h2 class="mt-6 text-xl font-semibold text-olive-800">Cookies de terceros</h2>
+  <p>{'{{COOKIES_TERCEROS}}'}</p>
+  <p>
+    Google AdSense y Google Analytics solo se activan <strong>después de que
+    des tu consentimiento</strong> a través del CMP de Google (Privacy &
+    Messages). Sin consentimiento no se carga ningún script de terceros.
+  </p>
+
+  <h2 class="mt-6 text-xl font-semibold text-olive-800">Cómo gestionar el consentimiento</h2>
+  <p>{'{{GESTION_DEL_CONSENTIMIENTO}}'}</p>
+</Legal>

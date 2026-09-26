@@ -1,0 +1,55 @@
+---
+/**
+ * About the author (spec §10.2, §11).
+ *
+ * E-E-A-T matters here: the guides and the tools are more credible if a real
+ * person stands behind them. Spec §10.2 is explicit that the owner writes this,
+ * so it ships as a flagged template rather than invented biography.
+ */
+import Base from '../layouts/Base.astro';
+---
+
+<Base
+  title="Sobre mí"
+  description="Quién está detrás de OlivarCalc y por qué se han hecho estas herramientas."
+  canonicalPath="/sobre-mi"
+>
+  <article class="prose max-w-2xl">
+    <h1 class="text-3xl font-bold text-olive-800">Sobre mí</h1>
+
+    <div class="mt-4 rounded border border-amber-300 bg-amber-50 p-4 text-amber-900">
+      <p class="font-semibold">PENDIENTE DE COMPLETAR POR EL PROPIETARIO</p>
+      <p class="text-sm">
+        Google evaluates la confianza de una web a partir de quién firma sus
+        contenidos (E-E-A-T). Esta página debe llevar una persona real, con su
+        experiencia y su nombre. Spec §10.2 y checklist de la Fase 8.
+      </p>
+    </div>
+
+    <h2 class="mt-6 text-xl font-semibold text-olive-800">Quién soy</h2>
+    <p>{'{{NOMBRE_Y_APELLIDOS}}'}</p>
+    <p>{'{{RELACION_CON_EL_SECTOR}}'}</p>
+
+    <h2 class="mt-6 text-xl font-semibold text-olive-800">Por qué OlivarCalc</h2>
+    <p>{'{{MOTIVACION_Y_PROBLEMA}}'}</p>
+
+    <h2 class="mt-6 text-xl font-semibold text-olive-800">De dónde salen los datos</h2>
+    <p>
+      Las herramientas de cálculo usan parámetros oficiales (tipos de IVA,
+      retenciones, densidades, jornales de convenio). Cada parámetro lleva su
+      fuente y se marca como verificado solo cuando se ha confirmado contra la
+      fuente oficial. Mientras no lo esté, la calculadora avisa.
+    </p>
+    <p>{'{{FUENTES_Y_METODO}}'}</p>
+
+    <h2 class="mt-6 text-xl font-semibold text-olive-800">Cómo respondo</h2>
+    <p>{'{{CONTACTO_Y_DISPONIBILIDAD}}'}</p>
+
+    <h2 class="mt-6 text-xl font-semibold text-olive-800">Lo que este sitio no es</h2>
+    <p>
+      Los resultados son orientativos y no sustituyen el asesoramiento de tu
+      gestoría. No soy un organismo oficial ni represento a ninguna
+      administración, cooperativa ni almazara.
+    </p>
+  </article>
+</Base>

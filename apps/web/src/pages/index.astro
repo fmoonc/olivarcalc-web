@@ -1,66 +1,143 @@
 ---
-// Placeholder home page. The real route set is spec §10.2 and belongs to
-// Fase 3; this exists so `yarn dev` and `yarn build` are meaningful now.
-import { calculateYieldConverter, SETTLEMENT_CALC_VERSION } from '@olivar/calculations';
+/**
+ * Home (spec §10.2): the five tools, the latest price, featured guides.
+ *
+ * Static. Every figure comes from the API at build time, so a build failure
+ * stops the deploy rather than shipping an empty page (§10.1).
+ */
+import Base from '../layouts/Base.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getArticles, getLatestPrices } from '../lib/api';
+import { formatDate, formatMoney, formatSignedPercent, qualityLabels } from '../lib/format';
+import { PUBLIC_SITE_URL } from '../lib/seo';
 
-const demo = calculateYieldConverter(
-  { fatYieldTotalPct: '18.5', correctionIndexPts: '3', kgOlives: '10000' },
+const [latest, { articles }] = await Promise.all([
+  getLatestPrices(),
+  getArticles({ perPage: 3 }),
+]);
+
+const virgin = latest.find((row) => row.quality === 'virgin') ?? latest[0];
+const change = formatSignedPercent(virgin?.weekly_change_pct ?? null);
+
+const tools = [
   {
-    version: 'demo',
-    campaign: '2026-27',
-    published_at: '2026-09-26',
-    params: {
-      'oil.density_kg_per_l': {
-        key: 'oil.density_kg_per_l',
-        value: '0.916',
-        unit: 'kg/L',
-        verified: false,
-        source_label: '',
-        source_url: '',
-      },
-    },
+    href: '/herramientas/liquidacion-aceituna',
+    title: 'Liquidación de aceituna',
+    blurb: 'Cuánto te van a pagar por tu aceituna, con REAGP o IVA y retención.',
   },
-);
+  {
+    href: '/herramientas/rendimiento-aceituna',
+    title: 'Conversión de rendimiento',
+    blurb: 'Del rendimiento graso total al industrial, y de kilos a litros.',
+  },
+  {
+    href: '/precio-aceite-oliva',
+    title: 'Precio del aceite',
+    blurb: 'La última semana y el histórico por calidad.',
+  },
+  {
+    href: '/herramientas/coste-olivar-hectarea',
+    title: 'Coste por hectárea',
+    blurb: 'Qué te cuesta producir una hectarea y cuál es el margen.',
+  },
+  {
+    href: '/herramientas/coste-cuadrilla-recogida',
+    title: 'Coste de la cuadrilla',
+    blurb: 'Lo que cuesta recoger tu aceituna con una cuadrilla.',
+  },
+];
 ---
 
-<html lang="es">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>OlivarCalc</title>
-    <meta
-      name="description"
-      content="Herramientas y precios para agricultores de olivar en España."
-    />
-  </head>
-  <body>
-    <main>
-      <h1>OlivarCalc</h1>
-      <p>Fase 0 y Fase 1 en marcha. Esta página es un marcador de posición.</p>
+<Base
+  title="Herramientas y precios para olivareros"
+  description="Calcula tu liquidación de aceituna, convierte rendimientos y consulta los precios del aceite en origen. Sin registro y en español."
+  canonicalPath="/"
+  schema={[
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: 'OlivarCalc',
+      url: PUBLIC_SITE_URL,
+      inLanguage: 'es-ES',
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'OlivarCalc',
+      url: PUBLIC_SITE_URL,
+    },
+  ]}
+>
+  <h1 class="text-3xl font-bold text-olive-800 sm:text-4xl">
+    Herramientas para el olivar
+  </h1>
+  <p class="mt-2 max-w-2xl text-lg">
+    Calculadoras gratuitas para olivareros. No hace falta crear cuenta.
+  </p>
 
-      <section>
-        <h2>El paquete de cálculos ya funciona</h2>
-        <p>
-          Versión de la fórmula de liquidación:
-          <strong>{SETTLEMENT_CALC_VERSION}</strong>
+  {
+    virgin && (
+      <section class="card mt-6 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p class="text-sm text-earth-600">
+            Aceite {qualityLabels[virgin.quality]} · semana del {formatDate(virgin.week_start)}
+          </p>
+          <p class="text-3xl font-bold tabular-nums text-olive-800">
+            {formatMoney(virgin.avg_price_eur_kg)}
+          </p>
+        </div>
+        <p class="text-sm font-semibold text-earth-600">
+          {change.text} esta semana
+          {virgin.provisional && <span class="ml-2 text-amber-800">Provisional</span>}
         </p>
-        <p>
-          Conversión de rendimiento en el servidor, como prueba de que
-          <code>@olivar/calculations</code> se importa sin dependencias de navegador:
-        </p>
-        <ul>
-          <li>Rendimiento industrial: {demo.industrialYieldPct} %</li>
-          <li>Aceite obtenido: {demo.kgOil} kg</li>
-          <li>En litros: {demo.litersOil} L</li>
-        </ul>
-        {
-          demo.warnings.length > 0 && (
-            <p role="status">
-              <strong>Aviso:</strong> {demo.warnings.map((w) => w.message).join(' ')}
-            </p>
-          )
-        }
+        <a class="btn btn-secondary" href="/precio-aceite-oliva">
+          Ver el histórico
+        </a>
       </section>
-    </main>
-  </body>
-</html>
+    )
+  }
+
+  <section class="mt-8">
+    <h2 class="text-2xl font-semibold text-olive-800">Las cinco herramientas</h2>
+    <ul class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        tools.map((tool) => (
+          <li class="card hover:border-olive-300">
+            <h3 class="text-lg font-semibold text-olive-800">
+              <a href={tool.href}>{tool.title}</a>
+            </h3>
+            <p class="mt-1 text-earth-600">{tool.blurb}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <AdSlot slot="mid-content" format="horizontal" />
+
+  {
+    articles.length > 0 && (
+      <section class="mt-8">
+        <h2 class="text-2xl font-semibold text-olive-800">Guías destacadas</h2>
+        <ul class="mt-4 grid gap-4 sm:grid-cols-3">
+          {articles.map((article) => (
+            <li class="card">
+              {article.category && (
+                <p class="text-xs uppercase tracking-wide text-earth-600">
+                  {article.category.name}
+                </p>
+              )}
+              <h3 class="mt-1 text-lg font-semibold text-olive-800">
+                <a href={`/guias/${article.slug}`}>{article.title}</a>
+              </h3>
+              <p class="mt-1 text-earth-600">{article.excerpt}</p>
+            </li>
+          ))}
+        </ul>
+        <p class="mt-4">
+          <a class="underline" href="/guias">Ver todas las guías</a>
+        </p>
+      </section>
+    )
+  }
+</Base>

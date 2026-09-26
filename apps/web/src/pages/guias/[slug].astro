@@ -1,0 +1,152 @@
+---
+/**
+ * One guide (spec §10.2). Carries the Article JSON-LD of spec §11, including a
+ * real author, because E-E-A-T is the point of /sobre-mi.
+ */
+import { getArticle, getArticles, getBuildManifest } from '../../lib/api';
+import { formatDate } from '../../lib/format';
+import { toolPath } from '../../lib/toolPaths';
+import { PUBLIC_SITE_URL } from '../../lib/seo';
+import Base from '../../layouts/Base.astro';
+import AdSlot from '../../components/AdSlot.astro';
+
+/**
+ * One static page per published guide. Unpublishing a guide in Filament and
+ * rebuilding removes its page, which is what the sitemap reflects.
+ *
+ * Slugs come from the build manifest rather than the paginated list: the public
+ * list caps `per_page` at 50, and the manifest exists exactly to tell a build
+ * what the site contains (spec §7.2).
+ */
+export async function getStaticPaths() {
+  const manifest = await getBuildManifest();
+
+  return manifest.articles.map((entry) => ({
+    params: { slug: entry.slug },
+  }));
+}
+
+const { slug } = Astro.params;
+
+// The list endpoint deliberately omits article bodies to keep its payload
+// small, so the detail endpoint is where the copy comes from.
+const article = await getArticle(slug!);
+
+// Spec §11: a guide cross-links to its calculator, so the reader can act on
+// what they just read.
+const related = article.related_tool
+  ? (await getArticles({ tool: article.related_tool, perPage: 3 })).articles
+  : [];
+
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: article.title,
+  description: article.excerpt,
+  datePublished: article.published_at ?? undefined,
+  dateModified: article.updated_at ?? article.published_at ?? undefined,
+  author: {
+    '@type': 'Person',
+    name: article.author ?? 'OlivarCalc',
+    url: new URL('/sobre-mi', PUBLIC_SITE_URL).toString(),
+  },
+  mainEntityOfPage: new URL(`/guias/${article.slug}`, PUBLIC_SITE_URL).toString(),
+};
+---
+
+<Base
+  title={article.meta_title ?? article.title}
+  description={article.meta_description ?? article.excerpt}
+  canonicalPath={`/guias/${article.slug}`}
+  type="article"
+  breadcrumbs={[
+    { name: 'Guías', href: '/guias' },
+    { name: article.category?.name ?? 'Guía' },
+    { name: article.title },
+  ]}
+  schema={[
+    articleSchema,
+    ...(article.faq.length > 0
+      ? [
+          {
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: article.faq.map((item) => ({
+              '@type': 'Question',
+              name: item.question,
+              acceptedAnswer: { '@type': 'Answer', text: item.answer },
+            })),
+          },
+        ]
+      : []),
+  ]}
+>
+  <article class="max-w-2xl">
+    <p class="text-sm text-earth-600">
+      {article.category?.name} · {formatDate(article.published_at)}
+      {
+        article.reviewed_at && (
+          <span> · Revisada el {formatDate(article.reviewed_at)}</span>
+        )
+      }
+    </p>
+
+    <h1 class="mt-1 text-3xl font-bold text-olive-800">{article.title}</h1>
+    <p class="mt-3 text-lg text-earth-600">{article.excerpt}</p>
+
+    <div class="prose mt-6 max-w-none">
+      <Fragment set:html={article.body_markdown} />
+    </div>
+
+    {
+      article.related_tool && (
+        <p class="mt-6">
+          <a class="btn btn-primary" href={`/herramientas/${toolPath(article.related_tool)}`}>
+            Calcular con esta herramienta
+          </a>
+        </p>
+      )
+    }
+  </article>
+
+  <AdSlot slot="mid-content" format="horizontal" />
+
+  {
+    article.faq.length > 0 && (
+      <section class="mt-8 max-w-2xl">
+        <h2 class="text-2xl font-semibold text-olive-800">Preguntas frecuentes</h2>
+        <dl class="mt-3 space-y-4">
+          {article.faq.map((item) => (
+            <div>
+              <dt class="font-semibold">{item.question}</dt>
+              <dd class="text-earth-600">{item.answer}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+    )
+  }
+
+  {
+    related.length > 0 && (
+      <section class="mt-8 max-w-2xl">
+        <h2 class="text-2xl font-semibold text-olive-800">Guías relacionadas</h2>
+        <ul class="mt-3 space-y-2">
+          {related
+            .filter((item) => item.slug !== article.slug)
+            .map((item) => (
+              <li>
+                <a class="underline" href={`/guias/${item.slug}`}>
+                  {item.title}
+                </a>
+              </li>
+            ))}
+        </ul>
+      </section>
+    )
+  }
+
+  <p class="mt-8 text-sm text-earth-600">
+    Escrito por <a class="underline" href="/sobre-mi">{article.author ?? 'OlivarCalc'}</a>.
+  </p>
+</Base>

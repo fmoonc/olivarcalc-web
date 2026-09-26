@@ -1,6 +1,7 @@
 // @ts-check
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
+import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
@@ -12,6 +13,7 @@ export default defineConfig({
     inlineStylesheets: 'auto',
   },
   vite: {
+    plugins: [tailwindcss()],
     build: {
       // Surface a budget breach at build time rather than in Lighthouse CI.
       chunkSizeWarningLimit: 90,

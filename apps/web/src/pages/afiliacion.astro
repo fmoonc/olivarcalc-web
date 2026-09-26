@@ -1,0 +1,77 @@
+---
+/**
+ * Amazon affiliate disclosure (spec §10.2, §12).
+ *
+ * The spec requires a visible notice on the affiliate page and on every
+ * affiliate block, with rel="sponsored nofollow noopener" on the links.
+ */
+import Base from '../layouts/Base.astro';
+import { getAffiliateProducts } from '../lib/api';
+---
+
+<Base
+  title="Afiliación"
+  description="OlivarCalc participa en el programa de afiliados de Amazon Europe."
+  canonicalPath="/afiliacion"
+>
+  <article class="prose max-w-2xl">
+    <h1 class="text-3xl font-bold text-olive-800">Afiliación</h1>
+
+    <p class="mt-4 rounded border border-earth-200 bg-white p-4">
+      Como afiliado de Amazon, obtengo ingresos por las compras adscritas que
+      cumplen los requisitos del programa. El precio que ves junto a un producto
+      es el que figura en Amazon en el momento de consultarlo y puede cambiar.
+    </p>
+
+    <h2 class="mt-6 text-xl font-semibold text-olive-800">Qué es esto y qué no</h2>
+    <p>
+      Los productos que aparecen en OlivarCalc son <strong>sugerencias</strong>,
+      no una recomendación agronómica. Las herramientas de cálculo del sitio son
+      independientes de cualquier producto que se enlace y no cambian los
+      resultados por estar afiliados.
+    </p>
+
+    <h2 class="mt-6 text-xl font-semibold text-olive-800">Enlaces de afiliados</h2>
+    <p>
+      Los enlaces salientes llevan <code>rel="sponsored nofollow noopener"</code>
+      para cumplir con la normativa europea de comunicacion comercial.
+    </p>
+
+    <h2 class="mt-6 text-xl font-semibold text-olive-800">Precios y datos oficiales</h2>
+    <p>
+      Los precios del aceite que muestra el sitio proceden de un extracto
+      periódico y se marcan como provisionales hasta su confirmación. Este sitio
+      no está asociado a Poolred ni a la Fundación del Olivar.
+    </p>
+  </article>
+
+  {
+    (await getAffiliateProducts()).length > 0 && (
+      <section class="mt-8 max-w-2xl">
+        <h2 class="text-2xl font-semibold text-olive-800">Productos</h2>
+        <p class="text-sm text-earth-600">
+          Como afiliado de Amazon, obtengo ingresos por las compras adscritas.
+        </p>
+        <ul class="mt-4 grid gap-3 sm:grid-cols-2">
+          {(await getAffiliateProducts()).map((product) => (
+            <li class="card">
+              <h3 class="font-semibold text-olive-800">{product.name}</h3>
+              <p class="text-sm text-earth-600">{product.short_description}</p>
+              {product.price_text && (
+                <p class="mt-1 font-semibold">{product.price_text}</p>
+              )}
+              <a
+                class="mt-2 inline-block text-sm underline"
+                href={product.url}
+                rel="sponsored nofollow noopener"
+                target="_blank"
+              >
+                Ver en Amazon
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+</Base>

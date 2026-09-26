@@ -1,0 +1,98 @@
+---
+/**
+ * Precio del aceite de oliva en origen (spec §10.2).
+ *
+ * The latest week per quality plus the historical chart. The page also
+ * carries a Dataset JSON-LD (spec §11).
+ */
+import Base from '../layouts/Base.astro';
+import AdSlot from '../components/AdSlot.astro';
+import PriceChart from '../components/PriceChart';
+import { getLatestPrices, getOilPrices } from '../lib/api';
+import { formatDate, formatMoney, formatSignedPercent, qualityLabels } from '../lib/format';
+import { PUBLIC_SITE_URL } from '../lib/seo';
+
+const [latest, series] = await Promise.all([getLatestPrices(), getOilPrices()]);
+
+const latestWeek = latest[0]?.week_start ?? null;
+
+// Dataset JSON-LD, spec §11: the price series is genuinely a dataset.
+const dataset = {
+  '@context': 'https://schema.org',
+  '@type': 'Dataset',
+  name: 'Precios del aceite de oliva en origen',
+  description:
+    'Serie semanal de precios en origen por calidad, en euros por tonelada y por kilo.',
+  url: new URL('/precio-aceite-oliva', PUBLIC_SITE_URL).toString(),
+  temporalCoverage: series.length > 0 ? `${series[0].week_start}/${series[series.length - 1].week_end}` : undefined,
+  variableMeasured: ['avg_price_eur_t', 'avg_price_eur_kg'],
+  measurementTechnique: 'Extracto del sistema de precios en origen',
+  isAccessibleForFree: true,
+  license: 'https://olivarcalc.es/aviso-legal',
+};
+---
+
+<Base
+  title="Precio del aceite de oliva en origen"
+  description="Precios semanales del aceite de oliva en origen por calidad, con histórico y variación."
+  canonicalPath="/precio-aceite-oliva"
+  breadcrumbs={[{ name: 'Precio del aceite' }]}
+  schema={[dataset]}
+>
+  <h1 class="text-3xl font-bold text-olive-800">Precio del aceite de oliva</h1>
+  <p class="mt-2 max-w-2xl text-lg">
+    Precios de la última semana publicada y su histórico. Los importes marcados como
+    provisionales están pendientes de confirmación.
+  </p>
+
+  {latest.length === 0 ? (
+    <p class="card mt-6 text-earth-600">Todavía no hay precios publicados.</p>
+  ) : (
+    <section class="mt-6">
+      <h2 class="text-xl font-semibold text-olive-800">
+        Última semana · {formatDate(latestWeek)}
+      </h2>
+      <ul class="mt-3 grid gap-3 sm:grid-cols-3">
+        {
+          latest.map((row) => {
+            const change = formatSignedPercent(row.weekly_change_pct);
+            const tone =
+              change.direction === 'up'
+                ? 'text-green-800'
+                : change.direction === 'down'
+                  ? 'text-red-800'
+                  : 'text-earth-600';
+            return (
+              <li class="card">
+                <p class="text-sm text-earth-600">{qualityLabels[row.quality]}</p>
+                <p class="text-3xl font-bold tabular-nums text-olive-800">
+                  {formatMoney(row.avg_price_eur_kg)}
+                </p>
+                <p class="text-sm text-earth-600">{formatMoney(row.avg_price_eur_t)} por tonelada</p>
+                <p class={`text-sm font-semibold ${tone}`}>
+                  {change.text}
+                  <span class="font-normal text-earth-600"> esta semana</span>
+                </p>
+                {row.provisional && (
+                  <p class="mt-1 text-xs text-amber-800">Provisional, pendiente de confirmar</p>
+                )}
+              </li>
+            );
+          })
+        }
+      </ul>
+    </section>
+  )}
+
+  <AdSlot slot="after-result" format="horizontal" />
+
+  <div class="mt-6">
+    <PriceChart series={series} client:visible />
+  </div>
+
+  <p class="mt-8 max-w-2xl text-sm text-earth-600">
+    Los precios se muestran en euros por kilo porque es la unidad con la que se compara
+    habitualmente. Consulta <a class="underline" href="/guias/precios-aceite-origen">la guía de
+    precios en origen</a> para entender cómo se forman.
+  </p>
+</Base>

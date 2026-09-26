@@ -1,0 +1,147 @@
+@import 'tailwindcss';
+
+/*
+ * OlivarCalc theme (spec §2, §10.5).
+ *
+ * The audience is olive growers over 45 on mid-range phones with patchy field
+ * coverage, so the defaults lean on legibility: a light background, high
+ * contrast, and a base font size above 16px. Dark mode is optional and only
+ * applied on request.
+ */
+@theme {
+  --color-olive-50: oklch(0.97 0.015 120);
+  --color-olive-100: oklch(0.93 0.035 120);
+  --color-olive-200: oklch(0.87 0.06 122);
+  --color-olive-300: oklch(0.79 0.09 124);
+  --color-olive-400: oklch(0.68 0.11 126);
+  --color-olive-500: oklch(0.58 0.11 128);
+  --color-olive-600: oklch(0.48 0.1 128);
+  --color-olive-700: oklch(0.4 0.08 129);
+  --color-olive-800: oklch(0.33 0.06 130);
+  --color-olive-900: oklch(0.27 0.045 131);
+
+  --color-earth-50: oklch(0.97 0.012 70);
+  --color-earth-100: oklch(0.93 0.025 70);
+  --color-earth-200: oklch(0.87 0.04 68);
+  --color-earth-600: oklch(0.52 0.08 60);
+  --color-earth-800: oklch(0.35 0.06 55);
+
+  /* Spec §10.5: base text 17-18px. */
+  --text-base: 1.125rem;
+  --text-base--line-height: 1.6;
+}
+
+@layer base {
+  html {
+    font-size: 112.5%; /* 18px root, so `text-base` lands on 18px */
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-earth-50);
+    color: var(--color-earth-800);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* WCAG 2.2 AA: a visible focus ring everywhere, not just where the browser
+     happens to put one. Removing outlines without a replacement is the most
+     common accessibility regression. */
+  :focus-visible {
+    outline: 3px solid var(--color-olive-600);
+    outline-offset: 2px;
+  }
+
+  /* A farmer's gloves, sunlight, and a cheap screen: never below 16px, and
+     never so large that inputs overflow. */
+  input,
+  select,
+  textarea,
+  button {
+    font-size: max(1rem, 1em);
+  }
+}
+
+@layer components {
+  .container-page {
+    margin-inline: auto;
+    width: 100%;
+    max-width: 72rem;
+    padding-inline: 1rem;
+  }
+
+  /*
+   * Spec §10.6: an ad slot must have a reserved height, or it shifts the
+   * layout when the ad loads and blows the CLS budget.
+   */
+  .ad-slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 90px;
+    margin-block: 1.5rem;
+    background-color: var(--color-earth-100);
+    border: 1px dashed var(--color-earth-200);
+    border-radius: 0.5rem;
+  }
+
+  .card {
+    background-color: white;
+    border: 1px solid var(--color-earth-200);
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+  }
+
+  /*
+   * The one number a farmer came for. Large, and never inside a label that
+   * could wrap awkwardly around it.
+   */
+  .result-headline {
+    font-size: clamp(2.25rem, 8vw, 3.5rem);
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--color-olive-700);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .field-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  .field-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--color-earth-200);
+    border-radius: 0.5rem;
+    background-color: white;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    min-height: 44px; /* comfortable touch target */
+  }
+
+  .btn-primary {
+    background-color: var(--color-olive-700);
+    color: white;
+  }
+
+  .btn-secondary {
+    background-color: white;
+    color: var(--color-olive-800);
+    border: 1px solid var(--color-olive-300);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: light dark;
+  }
+}
