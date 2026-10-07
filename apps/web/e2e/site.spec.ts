@@ -65,36 +65,130 @@ test.describe('navegación', () => {
   });
 });
 
-test.describe('precios', () => {
-  test('shows the latest week and loads the chart only on demand', async ({ page }) => {
+test./**
+ * The POOLred index page (spec §10.2).
+ *
+ * The figures come from POOLred's API, so they are asserted as "a variation is
+ * shown with the right sign and scale" rather than as exact numbers: pinning a
+ * figure that a third party publishes would fail the build the day the market
+ * moves. What is pinned here is the behaviour a grower depends on.
+ */
+describe('índice iPOOL de POOLred', () => {
+  test('shows the weekly variation of POOLred\'s four indices, with their names', async ({ page }) => {
     await page.goto('/precio-aceite-oliva');
 
-    await expect(page.getByRole('heading', { name: /Última semana/ })).toBeVisible();
-    await expect(page.getByText('Virgen').first()).toBeVisible();
+    // These four are POOLred's names, not ours. Asserting them is what stops the
+    // page quietly translating data it credits to someone else.
+    for (const name of ['iPOOL Extra', 'iPOOL Virgen', 'iPOOL Lampante', 'iPOOL España']) {
+      await expect(page.getByText(name, { exact: true }).first()).toBeVisible();
+    }
 
-    // Spec §10.6: Recharts is a deferred chunk, so the chart is not in the
-    // initial payload. It appears on interaction.
-    const before = await page.locator('.recharts-wrapper').count();
-    expect(before).toBe(0);
+    // A percentage, in Spanish format: comma decimal, and POOLred's own sign so a
+    // fall reads as a fall. Scoped to the four variation cards, since the Extra
+    // card below carries a price in euros and would match neither.
+    const variations = await page
+      .locator('section', { hasText: 'Variación semanal' })
+      .locator('li.card p.tabular-nums')
+      .allInnerTexts();
+
+    expect(variations).toHaveLength(4);
+
+    for (const raw of variations) {
+      expect(raw.replace(/ /g, ' ').trim()).toMatch(/^[+-]?\d+,\d{2} %$/);
+    }
+  });
+
+  test('attributes the data to the Fundación del Olivar and links to it', async ({ page }) => {
+    await page.goto('/precio-aceite-oliva');
+
+    // Republishing someone else's index without saying whose it is would be the
+    // worst version of this page.
+    await expect(page.getByText('Fundación del Olivar (POOLred)')).toBeVisible();
+
+    const link = page.getByRole('link', { name: /Fundación del Olivar/ }).first();
+    await expect(link).toHaveAttribute('href', /poolred\.com/);
+    await expect(link).toHaveAttribute('rel', /noopener/);
+  });
+
+  test('calls it an index, not an official price', async ({ page }) => {
+    await page.goto('/precio-aceite-oliva');
+
+    // The distinction is the whole reason the page was reworded. The sentence is
+    // split by a <strong>, so it is matched as one text run rather than two.
+    await expect(page.getByText(/índice de mercado/i)).toBeVisible();
+    await expect(
+      page.getByText(/no un precio oficial ni una cotización/i),
+    ).toBeVisible();
+  });
+
+  test('the Dataset JSON-LD credits POOLred as the creator', async ({ page }) => {
+    await page.goto('/precio-aceite-oliva');
+
+    const raw = await page.locator('script[type="application/ld+json"]').first().innerText();
+    const schema = JSON.parse(raw) as Array<Record<string, unknown>>;
+
+    const dataset = schema.find((s) => s['@type'] === 'Dataset');
+    const creator = dataset?.creator as Record<string, unknown> | undefined;
+
+    // Without a creator, the structured data claims numbers nobody authored.
+    expect(creator?.name).toContain('Fundación del Olivar');
+    expect(String(creator?.url)).toContain('poolred.com');
+  });
+
+  /**
+   * Regression: the chart defaulted to `virgin` while this page only ships
+   * `extra`, so it rendered "no data for this quality" with no way back. The
+   * component now derives its default from the series it was given.
+   */
+  test('plots the quality the page actually has, with no dead tabs', async ({ page }) => {
+    await page.goto('/precio-aceite-oliva');
 
     const reveal = page.getByRole('button', { name: 'Ver la gráfica' });
+    await reveal.scrollIntoViewIfNeeded();
+    await expect(reveal).toBeEnabled();
+    await reveal.click();
+    await expect(page.locator('.recharts-wrapper').first()).toBeVisible();
+
+    // A real chart, not the empty-state message.
+    await expect(page.getByText(/No hay datos para esta calidad/)).toHaveCount(0);
+
+    // One quality in, one tab. The importer publishes a single index, so the
+    // other two would only switch to an empty chart.
+    const tabs = page.getByRole('group', { name: 'Calidad del aceite' }).getByRole('button');
+    await expect(tabs).toHaveCount(1);
+    await expect(tabs.first()).toHaveText('Extra');
+  });
+
+  test('describes itself as the POOLred index rather than a plain price', async ({ page }) => {
+    await page.goto('/precio-aceite-oliva');
+
+    await expect(page.getByText(/Índice iPOOL de POOLred/i)).toBeVisible();
+  });
+
+  test('loads the chart only on demand', async ({ page }) => {
+    await page.goto('/precio-aceite-oliva');
+
+    // Spec §10.6: Recharts is a deferred chunk, not part of the initial payload.
+    expect(await page.locator('.recharts-wrapper').count()).toBe(0);
+
+    const reveal = page.getByRole('button', { name: 'Ver la gráfica' });
+
+    // The island is `client:visible`, so it only hydrates once the chart scrolls
+    // into view. This page puts the four variation cards and the attribution above
+    // it, which pushes the button to the very bottom of the fold, so the scroll is
+    // part of what is being tested rather than a detail.
+    await reveal.scrollIntoViewIfNeeded();
     await expect(reveal).toBeEnabled();
     await reveal.click();
     await expect(page.locator('.recharts-wrapper').first()).toBeVisible();
   });
 
-  test('the chart can be switched between qualities', async ({ page }) => {
+  test('shows a year of weekly history', async ({ page }) => {
     await page.goto('/precio-aceite-oliva');
 
-    // Enabled only once the island is live; before that a press would hit no
-    // handler at all (ADR-0010).
-    const reveal = page.getByRole('button', { name: 'Ver la gráfica' });
-    await expect(reveal).toBeEnabled();
-    await reveal.click();
-    await expect(page.locator('.recharts-wrapper').first()).toBeVisible();
-
-    await page.getByRole('button', { name: 'Lampante', exact: true }).click();
-    await expect(page.locator('.recharts-wrapper').first()).toBeVisible();
+    // A single data point is not a history. POOLred serves a year, so the importer
+    // should be storing weeks, not just the latest one.
+    await expect(page.getByText(/año de histórico/i)).toBeVisible();
   });
 });
 

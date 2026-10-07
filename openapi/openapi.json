@@ -341,6 +341,39 @@
                 }
             }
         },
+        "\/v1\/index-quotes\/latest": {
+            "get": {
+                "operationId": "v1.index-quotes.latest",
+                "description": "Open to the public like the rest of the price data: the point of\nrepublishing an index is that growers can see it. Scramble documents this\nfrom the docblock and types.",
+                "summary": "The most recent window POOLred published for all four of its indices",
+                "tags": [
+                    "IndexQuote"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application\/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#\/components\/schemas\/OilIndexQuoteResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "\/v1\/oil-prices": {
             "get": {
                 "operationId": "v1.oil-prices.index",
@@ -615,6 +648,47 @@
     },
     "components": {
         "schemas": {
+            "OilIndexQuoteResource": {
+                "type": "object",
+                "properties": {
+                    "poolred_id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "variation_pct": {
+                        "type": "string",
+                        "description": "Decimal string, never a JSON number: the frontend formats it and\nmust not see a float (spec \u00a70.7)."
+                    },
+                    "quoted_on": {
+                        "type": "string"
+                    },
+                    "period": {
+                        "type": "string"
+                    },
+                    "source_stamp": {
+                        "type": "string"
+                    },
+                    "is_finalized": {
+                        "type": "boolean"
+                    },
+                    "source_url": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "poolred_id",
+                    "name",
+                    "variation_pct",
+                    "quoted_on",
+                    "period",
+                    "source_stamp",
+                    "is_finalized",
+                    "source_url"
+                ],
+                "title": "OilIndexQuoteResource"
+            },
             "OilPriceResource": {
                 "type": "object",
                 "properties": {

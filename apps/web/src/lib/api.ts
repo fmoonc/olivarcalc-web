@@ -93,6 +93,25 @@ export type CampaignSummaryRow = {
   last_eur_t: string;
 };
 
+/**
+ * POOLred's weekly variation for one of its four indices.
+ *
+ * `poolred_id` and `name` are theirs, not ours, and are kept verbatim so the page
+ * matches the source it credits. There is no price here: their public ticker
+ * publishes a percentage and nothing else.
+ */
+export type IndexQuote = {
+  poolred_id: string;
+  name: string;
+  /** Percentage as a decimal string, e.g. "-6.850" means -6.85 %. */
+  variation_pct: string;
+  quoted_on: string;
+  period: string;
+  source_stamp: string;
+  is_finalized: boolean;
+  source_url: string;
+};
+
 export type AffiliateProduct = {
   name: string;
   category: string;
@@ -208,6 +227,17 @@ export async function getOilPrices(
 
 export async function getLatestPrices(): Promise<LatestPrice[]> {
   const { data } = await api<{ data: LatestPrice[] }>('/oil-prices/latest');
+  return data;
+}
+
+/**
+ * POOLred's latest variation for its four indices.
+ *
+ * Throws like every other fetcher here: Astro builds statically and a page with
+ * no market data must fail the build rather than ship an empty chart (spec §10.1).
+ */
+export async function getLatestIndexQuotes(): Promise<IndexQuote[]> {
+  const { data } = await api<{ data: IndexQuote[] }>('/index-quotes/latest');
   return data;
 }
 

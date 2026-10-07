@@ -5,6 +5,7 @@
  * OpenAPI spec version: 0.0.1
  */
 
+export * from './oilIndexQuoteResource';
 export * from './oilPriceResource';
 export * from './v1AffiliateProducts200';
 export * from './v1AffiliateProductsParams';
@@ -18,6 +19,7 @@ export * from './v1BuildManifest200ArticlesItem';
 export * from './v1BuildManifest200CategoriesItem';
 export * from './v1BuildManifest200ToolPagesItem';
 export * from './v1Categories200';
+export * from './v1IndexQuotesLatest200';
 export * from './v1OilPricesCampaignSummary200';
 export * from './v1OilPricesCampaignSummary422';
 export * from './v1OilPricesIndex200';

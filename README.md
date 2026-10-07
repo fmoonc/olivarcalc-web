@@ -132,3 +132,18 @@ Presupuestos de la spec §10.6, que vigila Lighthouse CI:
 
 El build falla si la API no responde, a propósito: nunca publicar páginas
 vacías (spec §10.1).
+
+## Datos de mercado
+
+`/precio-aceite-oliva` no muestra precios propios: muestra el **índice iPOOL de la
+Fundación del Olivar (POOLred)**, que la API importa y republica con atribución
+visible. La página lo llama índice, y no precio, a propósito: es un nivel de
+referencia de mercado, no una cotización oficial ni un precio de las Lonjas.
+
+Dos cosas que cambian si se tocan:
+
+- `PriceChart` deriva la calidad por defecto y las pestañas de la serie que
+  recibe. La página solo trae `extra`, así que ofrece una pestaña y pinta esa.
+  Si algún día llega a haber tres calidades, ofrecer tres funciona solo.
+- El texto de la página dice de dónde salen los datos y enlaza a POOLred. No es
+  decoración: quien decide si se fía de una cifra necesita saber quién la publicó.
