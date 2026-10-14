@@ -9,7 +9,7 @@
  * The generated output is committed, and CI fails if regeneration produces a
  * diff. So: never hand-edit packages/api-client.
  */
-import { mkdir, readFile, writeFile, copyFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -24,13 +24,15 @@ async function main() {
   await mkdir(dirname(target), { recursive: true });
 
   const localFile = process.env.OPENAPI_FILE;
+  let raw;
+
   if (localFile) {
     const source = resolve(process.cwd(), localFile);
     if (!existsSync(source)) {
       throw new Error(`OPENAPI_FILE not found: ${source}`);
     }
     console.log(`> reading ${source}`);
-    await copyFile(source, target);
+    raw = await readFile(source, 'utf8');
   } else {
     const url = process.env.OPENAPI_URL ?? DEFAULT_URL;
     console.log(`> downloading ${url}`);
@@ -42,11 +44,22 @@ async function main() {
           '  make -C ../olivarcalc-api openapi',
       );
     }
-    await writeFile(target, await response.text(), 'utf8');
+    raw = await response.text();
   }
 
-  // Fail loudly on a non-JSON payload (an HTML error page, say).
-  const parsed = JSON.parse(await readFile(target, 'utf8'));
+  // Both routes are normalised to the same serialisation before being written.
+  //
+  // Scramble's on-disk export escapes forward slashes ("\/v1\/parameters") while
+  // the HTTP endpoint serves the same document without them. Copying the file
+  // verbatim kept the escaped form, so a CI run reading OPENAPI_FILE produced a
+  // different openapi.json from a local run downloading it — 48 lines of
+  // difference that had nothing to do with the contract itself.
+  //
+  // Four spaces, not two: that is what Laravel writes and what the committed file
+  // already uses, so this change is about the slashes and nothing else. A
+  // reindent would bury a real contract change in a thousand lines of noise.
+  const parsed = JSON.parse(raw);
+  await writeFile(target, `${JSON.stringify(parsed, null, 4)}\n`, 'utf8');
   const pathCount = Object.keys(parsed.paths ?? {}).length;
   console.log(`> openapi ${parsed.openapi}, ${pathCount} path(s)`);
 

@@ -6,11 +6,12 @@
     },
     "servers": [
         {
-            "url": "http:\/\/127.0.0.1:8000\/api"
+            "url": "https://olivarcalc.es/api",
+            "description": "Prod"
         }
     ],
     "paths": {
-        "\/v1\/build-manifest": {
+        "/v1/build-manifest": {
             "get": {
                 "operationId": "v1.build-manifest",
                 "tags": [
@@ -20,7 +21,7 @@
                     "200": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
@@ -123,10 +124,10 @@
                 }
             }
         },
-        "\/v1\/categories": {
+        "/v1/categories": {
             "get": {
                 "operationId": "v1.categories",
-                "summary": "GET \/api\/v1\/categories",
+                "summary": "GET /api/v1/categories",
                 "tags": [
                     "Content"
                 ],
@@ -134,7 +135,7 @@
                     "200": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "object"
                                 }
@@ -144,11 +145,11 @@
                 }
             }
         },
-        "\/v1\/articles": {
+        "/v1/articles": {
             "get": {
                 "operationId": "v1.articles.index",
-                "description": "Paginated in Laravel's standard shape (data \/ links \/ meta), spec \u00a77.1.",
-                "summary": "GET \/api\/v1\/articles",
+                "description": "Paginated in Laravel's standard shape (data / links / meta), spec §7.1.",
+                "summary": "GET /api/v1/articles",
                 "tags": [
                     "Content"
                 ],
@@ -196,7 +197,7 @@
                     "200": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "object"
                                 }
@@ -204,15 +205,15 @@
                         }
                     },
                     "422": {
-                        "$ref": "#\/components\/responses\/ValidationException"
+                        "$ref": "#/components/responses/ValidationException"
                     }
                 }
             }
         },
-        "\/v1\/articles\/{slug}": {
+        "/v1/articles/{slug}": {
             "get": {
                 "operationId": "v1.articles.show",
-                "summary": "GET \/api\/v1\/articles\/{slug}",
+                "summary": "GET /api/v1/articles/{slug}",
                 "tags": [
                     "Content"
                 ],
@@ -230,7 +231,7 @@
                     "200": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "object"
                                 }
@@ -240,7 +241,7 @@
                     "404": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
@@ -258,10 +259,10 @@
                 }
             }
         },
-        "\/v1\/tool-pages\/{toolKey}": {
+        "/v1/tool-pages/{toolKey}": {
             "get": {
                 "operationId": "v1.tool-pages.show",
-                "summary": "GET \/api\/v1\/tool-pages\/{tool_key}",
+                "summary": "GET /api/v1/tool-pages/{tool_key}",
                 "tags": [
                     "Content"
                 ],
@@ -279,7 +280,7 @@
                     "200": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "object"
                                 }
@@ -289,7 +290,7 @@
                     "404": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
@@ -307,10 +308,10 @@
                 }
             }
         },
-        "\/v1\/affiliate-products": {
+        "/v1/affiliate-products": {
             "get": {
                 "operationId": "v1.affiliate-products",
-                "summary": "GET \/api\/v1\/affiliate-products",
+                "summary": "GET /api/v1/affiliate-products",
                 "tags": [
                     "Content"
                 ],
@@ -328,7 +329,7 @@
                     "200": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "object"
                                 }
@@ -336,12 +337,12 @@
                         }
                     },
                     "422": {
-                        "$ref": "#\/components\/responses\/ValidationException"
+                        "$ref": "#/components/responses/ValidationException"
                     }
                 }
             }
         },
-        "\/v1\/index-quotes\/latest": {
+        "/v1/index-quotes/latest": {
             "get": {
                 "operationId": "v1.index-quotes.latest",
                 "description": "Open to the public like the rest of the price data: the point of\nrepublishing an index is that growers can see it. Scramble documents this\nfrom the docblock and types.",
@@ -353,14 +354,14 @@
                     "200": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#\/components\/schemas\/OilIndexQuoteResource"
+                                                "$ref": "#/components/schemas/OilIndexQuoteResource"
                                             }
                                         }
                                     },
@@ -374,11 +375,11 @@
                 }
             }
         },
-        "\/v1\/oil-prices": {
+        "/v1/oil-prices": {
             "get": {
                 "operationId": "v1.oil-prices.index",
                 "description": "The weekly series, filtered by quality and date range.",
-                "summary": "GET \/api\/v1\/oil-prices",
+                "summary": "GET /api/v1/oil-prices",
                 "tags": [
                     "OilPrice"
                 ],
@@ -416,14 +417,14 @@
                     "200": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#\/components\/schemas\/OilPriceResource"
+                                                "$ref": "#/components/schemas/OilPriceResource"
                                             }
                                         }
                                     },
@@ -435,16 +436,16 @@
                         }
                     },
                     "422": {
-                        "$ref": "#\/components\/responses\/ValidationException"
+                        "$ref": "#/components/responses/ValidationException"
                     }
                 }
             }
         },
-        "\/v1\/oil-prices\/latest": {
+        "/v1/oil-prices/latest": {
             "get": {
                 "operationId": "v1.oil-prices.latest",
-                "description": "Latest published week per quality, plus the week-over-week change.\nThe change is computed here, on the server, as a decimal: a client doing\nit in floating point would drift (spec \u00a74.5).",
-                "summary": "GET \/api\/v1\/oil-prices\/latest",
+                "description": "Latest published week per quality, plus the week-over-week change.\nThe change is computed here, on the server, as a decimal: a client doing\nit in floating point would drift (spec §4.5).",
+                "summary": "GET /api/v1/oil-prices/latest",
                 "tags": [
                     "OilPrice"
                 ],
@@ -452,7 +453,7 @@
                     "200": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
@@ -470,11 +471,11 @@
                 }
             }
         },
-        "\/v1\/oil-prices\/campaigns\/{campaign}\/summary": {
+        "/v1/oil-prices/campaigns/{campaign}/summary": {
             "get": {
                 "operationId": "v1.oil-prices.campaign-summary",
-                "description": "Mean, max and min per quality within a campaign. Spec \u00a74.5.",
-                "summary": "GET \/api\/v1\/oil-prices\/campaigns\/{campaign}\/summary",
+                "description": "Mean, max and min per quality within a campaign. Spec §4.5.",
+                "summary": "GET /api/v1/oil-prices/campaigns/{campaign}/summary",
                 "tags": [
                     "OilPrice"
                 ],
@@ -492,7 +493,7 @@
                     "200": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
@@ -514,7 +515,7 @@
                     "422": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
@@ -532,11 +533,11 @@
                 }
             }
         },
-        "\/v1\/parameters\/current": {
+        "/v1/parameters/current": {
             "get": {
                 "operationId": "v1.parameters.current",
                 "description": "The set that is live for a campaign. Optional `?campaign=` narrows it.",
-                "summary": "GET \/api\/v1\/parameters\/current",
+                "summary": "GET /api/v1/parameters/current",
                 "tags": [
                     "Parameter"
                 ],
@@ -554,7 +555,7 @@
                     "200": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "object"
                                 }
@@ -564,7 +565,7 @@
                     "404": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
@@ -576,7 +577,7 @@
                                                 {
                                                     "type": "string",
                                                     "enum": [
-                                                        "No hay un conjunto de par\u00e1metros publicado."
+                                                        "No hay un conjunto de parámetros publicado."
                                                     ]
                                                 }
                                             ]
@@ -590,16 +591,16 @@
                         }
                     },
                     "422": {
-                        "$ref": "#\/components\/responses\/ValidationException"
+                        "$ref": "#/components/responses/ValidationException"
                     }
                 }
             }
         },
-        "\/v1\/parameters\/{version}": {
+        "/v1/parameters/{version}": {
             "get": {
                 "operationId": "v1.parameters.show",
-                "description": "A specific set, so an old saved calculation can be shown again with the\nfigures it was actually made with (spec \u00a77.2).",
-                "summary": "GET \/api\/v1\/parameters\/{version}",
+                "description": "A specific set, so an old saved calculation can be shown again with the\nfigures it was actually made with (spec §7.2).",
+                "summary": "GET /api/v1/parameters/{version}",
                 "tags": [
                     "Parameter"
                 ],
@@ -617,7 +618,7 @@
                     "200": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "object"
                                 }
@@ -627,7 +628,7 @@
                     "404": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
@@ -659,7 +660,7 @@
                     },
                     "variation_pct": {
                         "type": "string",
-                        "description": "Decimal string, never a JSON number: the frontend formats it and\nmust not see a float (spec \u00a70.7)."
+                        "description": "Decimal string, never a JSON number: the frontend formats it and\nmust not see a float (spec §0.7)."
                     },
                     "quoted_on": {
                         "type": "string"
@@ -703,7 +704,7 @@
                     },
                     "avg_price_eur_t": {
                         "type": "string",
-                        "description": "Decimal strings, per spec \u00a77.1."
+                        "description": "Decimal strings, per spec §7.1."
                     },
                     "avg_price_eur_kg": {
                         "type": "string"
@@ -745,7 +746,7 @@
             "ValidationException": {
                 "description": "Validation error",
                 "content": {
-                    "application\/json": {
+                    "application/json": {
                         "schema": {
                             "type": "object",
                             "properties": {
