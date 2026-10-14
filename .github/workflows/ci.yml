@@ -15,10 +15,74 @@ concurrency:
 
 jobs:
   quality:
+    # Spec §10.1: the build is static and fetches the API at build time, failing
+    # on purpose if it cannot. That means this job needs the API up before
+    # `yarn build` — it did not, and the first CI run died on "fetch failed" from
+    # inside getStaticPaths, which reads like a site bug and is not one.
     name: lint, typecheck, test
     runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: olivarcalc
+          MYSQL_USER: olivarcalc
+          MYSQL_PASSWORD: olivarcalc
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uolivarcalc -polivarcalc"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
     steps:
       - uses: actions/checkout@v5
+
+      - name: Checkout the API
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ vars.API_REPOSITORY }}
+          path: api
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: pdo_mysql, intl, bcmath, gd, zip
+          coverage: none
+
+      - name: Install the API
+        working-directory: api
+        run: |
+          composer install --no-interaction --no-progress
+          cp .env.example .env
+          php artisan key:generate
+          php artisan migrate --force
+          php artisan db:seed --force
+          php artisan parameters:publish --force
+
+      - name: Start the API
+        working-directory: api
+        run: php artisan serve --host=127.0.0.1 --port=8000 &
+        env:
+          DB_HOST: 127.0.0.1
+          DB_DATABASE: olivarcalc
+          DB_USERNAME: olivarcalc
+          DB_PASSWORD: olivarcalc
+
+      - name: Wait for the API
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8000/up >/dev/null; then
+              echo "API lista tras ${i}s"; exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::La API no respondió en 30s"
+          exit 1
 
       # Corepack has to be enabled BEFORE setup-node. `cache: yarn` makes that
       # action run `yarn cache dir` to find the cache folder, and the Ubuntu image
@@ -48,6 +112,10 @@ jobs:
 
       - name: Build
         run: yarn build
+        env:
+          # The build has to reach the API; see the note below.
+          API_URL: http://127.0.0.1:8000
+          PUBLIC_SITE_URL: http://127.0.0.1:4321
 
   e2e:
     # Spec §14 Fase 3: the calculators have to work in a browser, and the golden

@@ -109,7 +109,6 @@ describe('índice iPOOL de POOLred', () => {
   test('shows the weekly variation of POOLred\'s four indices, with their names', async ({ page }) => {
     await page.goto('/precio-aceite-oliva');
     skipIfNoData(await pageHasData(page));
-    await page.goto('/precio-aceite-oliva');
 
     // These four are POOLred's names, not ours. Asserting them is what stops the
     // page quietly translating data it credits to someone else.
