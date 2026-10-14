@@ -20,14 +20,19 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # Corepack has to be enabled BEFORE setup-node. `cache: yarn` makes that
+      # action run `yarn cache dir` to find the cache folder, and the Ubuntu image
+      # ships Yarn 1, which refuses to read a package.json declaring
+      # "packageManager": "yarn@4.18.1". Enabling corepack after left the action
+      # failing on its own step, before corepack was ever reached.
+      - name: Enable corepack (Yarn 4)
+        run: corepack enable
+
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
           cache: yarn
-
-      - name: Enable corepack (Yarn 4)
-        run: corepack enable
 
       - name: Install
         run: yarn install --immutable
@@ -72,13 +77,20 @@ jobs:
           --health-retries=20
 
     steps:
+      # The API goes INSIDE this workspace, not next to it.
+      #
+      # `actions/checkout` refuses a path outside the workspace root — "Repository
+      # path ... is not under ..." — and it is right to: a sibling checkout would
+      # land outside the directory the workflow's credentials and token scoping
+      # apply to. The API repo is therefore cloned into a subdirectory and the
+      # E2E steps address it from there.
       - uses: actions/checkout@v5
 
-      - name: Checkout the API as a sibling
+      - name: Checkout the API
         uses: actions/checkout@v5
         with:
           repository: ${{ vars.API_REPOSITORY }}
-          path: ../olivarcalc-api
+          path: api
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -88,7 +100,7 @@ jobs:
           coverage: none
 
       - name: Install the API
-        working-directory: ../olivarcalc-api
+        working-directory: api
         run: |
           composer install --no-interaction --no-progress
           cp .env.example .env
@@ -100,7 +112,7 @@ jobs:
           php artisan parameters:publish --force
 
       - name: Serve the API
-        working-directory: ../olivarcalc-api
+        working-directory: api
         run: php artisan serve --host=127.0.0.1 --port=8000 &
         env:
           DB_HOST: 127.0.0.1
@@ -108,12 +120,13 @@ jobs:
           DB_USERNAME: olivarcalc
           DB_PASSWORD: olivarcalc
 
+      # Corepack before setup-node; see the note in the quality job.
+      - run: corepack enable
+
       - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
           cache: yarn
-
-      - run: corepack enable
 
       - run: yarn install --immutable
 
@@ -144,22 +157,49 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # Corepack before setup-node; see the note in the quality job.
+      - run: corepack enable
+
       - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
           cache: yarn
 
-      - run: corepack enable
-
       - run: yarn install --immutable
 
-      - name: Export the contract from the API
-        run: php ../olivarcalc-api/vendor/bin/scramble --help >/dev/null 2>&1 || true
+      # This job calls PHP, so it needs PHP. It did not have it before: the step
+      # below was `|| true`, which swallowed the "command not found" and made the
+      # job look like it was checking the contract when it had exported nothing.
+      - name: Checkout the API
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ vars.API_REPOSITORY }}
+          path: api
 
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: intl, bcmath, gd, zip
+          coverage: none
+
+      - name: Install the API dependencies
+        working-directory: api
+        run: |
+          composer install --no-interaction --no-progress
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Export the contract from the API
+        working-directory: api
+        run: php artisan scramble:export --path=storage/app/openapi.json
+
+      # Downloads the freshly exported contract, regenerates the client and fails
+      # on a diff, so a forgotten `yarn api:generate` cannot reach main.
       - name: Regenerate the client
         run: yarn api:generate
         env:
-          OPENAPI_URL: ${{ vars.OPENAPI_URL }}
+          OPENAPI_FILE: api/storage/app/openapi.json
 
       - name: Fail if the committed client changed
         run: |
