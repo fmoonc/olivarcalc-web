@@ -267,7 +267,11 @@ describe('índice iPOOL de POOLred', () => {
     await expect(page.locator('.recharts-wrapper')).toHaveCount(0);
 
     // And the attribution survives, so the page still says whose data it will be.
-    await expect(page.getByText(/Fundación del Olivar/)).toBeVisible();
+    // Scoped to the link: the intro paragraph names the foundation too, and a
+    // loose selector matches both and trips strict mode.
+    await expect(
+      page.getByRole('link', { name: /Fundación del Olivar/ }).first(),
+    ).toBeVisible();
   });
 });
 
