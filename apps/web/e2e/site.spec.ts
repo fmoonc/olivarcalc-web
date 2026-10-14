@@ -88,9 +88,17 @@ describe('índice iPOOL de POOLred', () => {
    * does not; asking the API and then asserting on the page is how this test
    * ended up asserting an empty state against a page full of data, about one run
    * in three. The DOM is the thing under test.
+   *
+   * Matched on the figure, not on the string "iPOOL": the page's own title,
+   * intro and attribution mention it in every state, so a looser selector saw
+   * data on a page showing none.
    */
   async function pageHasData(page: import('@playwright/test').Page): Promise<boolean> {
-    return (await page.locator('main#contenido >> text=/iPOOL /').count()) > 0;
+    return (
+      (await page
+        .locator('main#contenido li.card p.tabular-nums', { hasText: /%$/ })
+        .count()) > 0
+    );
   }
 
   /** Skips, with a visible reason, when this environment has no index data. */

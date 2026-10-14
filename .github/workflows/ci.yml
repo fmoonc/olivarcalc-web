@@ -63,6 +63,13 @@ jobs:
           php artisan migrate --force
           php artisan db:seed --force
           php artisan parameters:publish --force
+          # One real import so the E2E suite exercises the price page with figures
+          # rather than only its empty state. This reaches POOLred's public API;
+          # it is two unauthenticated GETs, twice per pipeline, and it is what
+          # makes those tests worth running. The importer stays off by default in
+          # every other environment.
+          POOLRED_IMPORT_ENABLED=true php artisan poolred:import --days=90 || \
+            echo "::warning::La importacion de POOLred fallo; los tests del indice probaran el estado vacio"
 
       - name: Start the API
         working-directory: api
