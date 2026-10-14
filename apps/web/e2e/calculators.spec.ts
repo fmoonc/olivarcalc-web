@@ -57,6 +57,22 @@ async function figures(page: Page): Promise<string[]> {
 }
 
 /**
+ * Opens a tool page and waits for its form to be there and ready.
+ *
+ * `page.goto()` resolves on load, which is not the same as the SSR markup being
+ * in the DOM, and Astro's dev server is slower to produce the first request than
+ * the built site is. Without this, a test that starts filling immediately sees
+ * "element(s) not found" — which made this suite fail roughly one run in three
+ * while passing in isolation every single time.
+ */
+async function openTool(page: Page, path: string): Promise<void> {
+  await page.goto(path);
+  // Enabled rather than merely visible, so this also covers the hydration gate
+  // from ADR-0010 and a fill cannot race the island taking over.
+  await expect(page.locator('.field-input').first()).toBeEnabled();
+}
+
+/**
  * Playwright gives each test a fresh browser context, so `localStorage` already
  * starts empty. Clearing it via `addInitScript` as well would run on *every*
  * navigation, including the reloads the persistence test depends on.
@@ -85,6 +101,8 @@ test.describe('hidratación', () => {
 
     await page.goto('/herramientas/liquidacion-aceituna');
 
+    // Not openTool(): this test is about the state BEFORE hydration, and
+    // openTool deliberately waits for the form to become editable.
     // Server-rendered HTML is present immediately...
     await expect(page.getByLabel('Kilos de aceituna')).toBeVisible();
 
@@ -98,7 +116,7 @@ test.describe('hidratación', () => {
   });
 
   test('nothing typed before hydration is lost', async ({ page }) => {
-    await page.goto('/herramientas/liquidacion-aceituna');
+    await openTool(page, '/herramientas/liquidacion-aceituna');
     await expect(page.getByLabel('Kilos de aceituna')).toBeEnabled();
 
     await page.getByLabel('Kilos de aceituna').fill('10000');
@@ -114,7 +132,7 @@ test.describe('hidratación', () => {
 
 test.describe('calculadora de liquidación', () => {
   test('reproduces the golden fixture', async ({ page }) => {
-    await page.goto('/herramientas/liquidacion-aceituna');
+    await openTool(page, '/herramientas/liquidacion-aceituna');
 
     await expect(page.getByRole('heading', { level: 1 })).toContainText('Liquidación');
 
@@ -144,7 +162,7 @@ test.describe('calculadora de liquidación', () => {
   });
 
   test('warns instead of failing when a parameter is unverified', async ({ page }) => {
-    await page.goto('/herramientas/liquidacion-aceituna');
+    await openTool(page, '/herramientas/liquidacion-aceituna');
 
     await page.getByLabel('Kilos de aceituna').fill('10000');
     await page.getByLabel('Rendimiento graso total (%)').fill('18.5');
@@ -164,7 +182,7 @@ test.describe('calculadora de liquidación', () => {
     // confirmed a grower paying under the general regime got an error instead of
     // a settlement. It now reads 10 % from Ley 37/1992 art. 91.Uno, and this test
     // is what stops that from silently going back to an empty parameter.
-    await page.goto('/herramientas/liquidacion-aceituna');
+    await openTool(page, '/herramientas/liquidacion-aceituna');
 
     await page.getByLabel('Kilos de aceituna').fill('10000');
     await page.getByLabel('Rendimiento graso total (%)').fill('18.5');
@@ -183,7 +201,7 @@ test.describe('calculadora de liquidación', () => {
   });
 
   test('rejects an empty form with a readable message', async ({ page }) => {
-    await page.goto('/herramientas/liquidacion-aceituna');
+    await openTool(page, '/herramientas/liquidacion-aceituna');
 
     const message = await submitExpectingAlert(page, /Calcular liquidación/);
 
@@ -192,7 +210,7 @@ test.describe('calculadora de liquidación', () => {
   });
 
   test('reveals the step-by-step breakdown on demand', async ({ page }) => {
-    await page.goto('/herramientas/liquidacion-aceituna');
+    await openTool(page, '/herramientas/liquidacion-aceituna');
     await page.getByLabel('Kilos de aceituna').fill('10000');
     await page.getByLabel('Rendimiento graso total (%)').fill('18.5');
     await page.getByLabel('Precio del aceite por kilo (aceituna de vuelo)').fill('3.20');
@@ -209,7 +227,7 @@ test.describe('calculadora de liquidación', () => {
   });
 
   test('keeps the form across a reload, so a dropped signal costs nothing', async ({ page }) => {
-    await page.goto('/herramientas/liquidacion-aceituna');
+    await openTool(page, '/herramientas/liquidacion-aceituna');
     await expect(page.getByLabel('Kilos de aceituna')).toBeEnabled();
     await page.getByLabel('Kilos de aceituna').fill('12345');
 
@@ -222,7 +240,7 @@ test.describe('calculadora de liquidación', () => {
 
 test.describe('conversor de rendimiento', () => {
   test('reproduces the golden fixture', async ({ page }) => {
-    await page.goto('/herramientas/rendimiento-aceituna');
+    await openTool(page, '/herramientas/rendimiento-aceituna');
 
     await page.getByLabel('Rendimiento graso total (%)').fill('18.5');
     await page.getByLabel('Índice corrector (puntos)').fill('3');
@@ -239,7 +257,7 @@ test.describe('conversor de rendimiento', () => {
   });
 
   test('answers the inverse question: olives needed for a target volume', async ({ page }) => {
-    await page.goto('/herramientas/rendimiento-aceituna');
+    await openTool(page, '/herramientas/rendimiento-aceituna');
 
     await page.getByLabel('Rendimiento graso total (%)').fill('18.5');
     await page.getByLabel('Índice corrector (puntos)').fill('3');
@@ -253,7 +271,7 @@ test.describe('conversor de rendimiento', () => {
   });
 
   test('explains itself when the industrial yield is zero', async ({ page }) => {
-    await page.goto('/herramientas/rendimiento-aceituna');
+    await openTool(page, '/herramientas/rendimiento-aceituna');
 
     // A correction index above the fat yield clamps at zero rather than going
     // negative (fixture "correction index above fat yield").
@@ -285,7 +303,7 @@ test.describe('coste por hectárea', () => {
   ];
 
   test('reproduces the golden fixture', async ({ page }) => {
-    await page.goto('/herramientas/coste-olivar-hectarea');
+    await openTool(page, '/herramientas/coste-olivar-hectarea');
 
     await page.getByLabel('Hectáreas').fill('10');
     await page.getByLabel('Aceituna por hectárea (kg)').fill('4000');
@@ -315,7 +333,7 @@ test.describe('coste por hectárea', () => {
   });
 
   test('breaks the cost down by line', async ({ page }) => {
-    await page.goto('/herramientas/coste-olivar-hectarea');
+    await openTool(page, '/herramientas/coste-olivar-hectarea');
 
     await page.getByLabel('Hectáreas').fill('10');
     await page.getByLabel('Aceituna por hectárea (kg)').fill('4000');
@@ -343,7 +361,7 @@ test.describe('coste de la cuadrilla', () => {
    * path is the only one available (ADR-0009).
    */
   async function fillCrew(page: Page, opts: { wage?: string; employerCost?: string } = {}) {
-    await page.goto('/herramientas/coste-cuadrilla-recogida');
+    await openTool(page, '/herramientas/coste-cuadrilla-recogida');
     await page.getByLabel('Trabajadores').fill('6');
     await page.getByLabel('Días de campaña').fill('12');
     if (opts.wage !== undefined) {
@@ -398,6 +416,8 @@ test.describe('coste de la cuadrilla', () => {
   });
 
   test('disables the official employer cost while it is unverified', async ({ page }) => {
+    // Not openTool(): the option below has to be observed in the server-rendered
+    // markup, before React attaches.
     await page.goto('/herramientas/coste-cuadrilla-recogida');
 
     const option = page

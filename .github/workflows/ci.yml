@@ -154,6 +154,27 @@ jobs:
     # `yarn api:generate`.
     name: OpenAPI client in sync
     runs-on: ubuntu-latest
+
+    # Scramble reflects on the Eloquent models to build the schema, so it needs a
+    # live MySQL. Without one this job failed with "SQLSTATE[HY000] [2002]
+    # Connection refused" while looking like a contract problem. The database has
+    # to exist too: the migrations run below, so Scramble has tables to reflect.
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: olivarcalc
+          MYSQL_USER: olivarcalc
+          MYSQL_PASSWORD: olivarcalc
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uolivarcalc -polivarcalc"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
     steps:
       - uses: actions/checkout@v5
 
@@ -189,6 +210,7 @@ jobs:
           composer install --no-interaction --no-progress
           cp .env.example .env
           php artisan key:generate
+          php artisan migrate --force
 
       - name: Export the contract from the API
         working-directory: api
